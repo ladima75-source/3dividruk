@@ -15,7 +15,7 @@ from collections import defaultdict, deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from .db import migrate
-from .catalog import products, update_product
+from .catalog import products, update_product, reorder_products
 from .orders import create_order, get_public_order, admin_list, update_status, settings, update_settings
 from .services.delivery.nova_poshta import NovaPoshtaAdapter
 from .services.delivery.base import DeliveryNotConfigured, DeliveryUpstreamError
@@ -219,6 +219,8 @@ class Handler(BaseHTTPRequestHandler):
                 if not self.admin():
                     return
                 data = self.body()
+                if path == '/api/v1/admin/catalog/order' and self.command == 'PATCH':
+                    return self.reply(reorder_products(data.get('category'), data.get('subcategory'), data.get('skus')))
                 if path.startswith('/api/v1/admin/catalog/') and self.command == 'PATCH':
                     sku = urllib.parse.unquote(path.removeprefix('/api/v1/admin/catalog/'))
                     value = update_product(sku,data)
