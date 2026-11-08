@@ -9,7 +9,7 @@ const DiViCart = (() => {
   const set=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{throw new Error('Дозвольте збереження даних у браузері для кошика.')}};
   let products=[];
   const identity=s=>String(s?.commerceSku||s?.sku||'');
-  const canBuySku=s=>!!s&&identity(s)&&s.price!==null&&s.price!==undefined&&Number.isFinite(Number(s.price))&&Number(s.price)>0&&['in_stock','preorder'].includes(s.availability);
+  const canBuySku=s=>!!s&&s.storefront_visible!==false&&identity(s)&&s.price!==null&&s.price!==undefined&&Number.isFinite(Number(s.price))&&Number(s.price)>0&&['in_stock','preorder'].includes(s.availability);
   const rows=()=>{
     const raw=get(key,[]); if(!Array.isArray(raw))return [];
     return raw.filter(x=>x&&typeof x.sku==='string'&&Number.isInteger(x.qty)&&x.qty>=1&&x.qty<=99);
