@@ -144,3 +144,8 @@
 .catalog-tools select[name="subcategory"][hidden]{display:none}
 @media(max-width:800px){.home-category-shortcuts{grid-template-columns:1fr}.home-shortcut-group{padding:16px}.catalog-shortcut-group>b{flex-basis:100%;min-width:0}}
 @media(max-width:700px){.catalog-tools select[name="subcategory"]{width:calc(50% - 5px);min-width:0;max-width:none}.home-shortcut-links a,.catalog-shortcut-group a{font-size:11px;min-height:38px;padding:8px 10px}}
+
+/* Four live top-level collections: balanced grid while MaGelle bags stay paused */
+@media(min-width:1201px){.homepage .category-tiles{grid-template-columns:repeat(5,minmax(0,1fr))}}
+@media(max-width:1200px){.homepage .category-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.homepage .category-tile.category-lighting{grid-column:auto}}
+@media(max-width:700px){.homepage .category-tile.category-lighting{grid-column:auto;min-height:230px}}
