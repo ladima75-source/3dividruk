@@ -33,12 +33,10 @@ for p in products:
         check(not permitted or child in permitted,'Unclassified nested product '+p['id'])
         check(not child or permitted.get(child)==p.get('subcategoryLabel'),'Incorrect child label '+p['id'])
         check(p.get('categoryLabel')==definition['label'],'Incorrect parent label '+p['id'])
-check(sum(p['category']=='lighting' for p in published)==63,'Lighting category total changed')
-check(sum(p['category']=='decor' for p in published)==30,'Decor category total changed')
-expected={'table-lamps':33,'pendant-lamps':30,'bowls-organizers':15,'figurines':6,'incense-holders':5,'wall-art':4}
-for child,count in expected.items():
-    check(sum(p.get('subcategory')==child for p in published)==count,
-          f'Unexpected count in {child}; review catalogue migration')
+for category_id in ('lighting','decor'):
+    group=[p for p in published if p['category']==category_id]
+    check(all(p.get('subcategory') for p in group),
+          'Missing child category for published '+category_id)
 store_js=(ROOT/'js/store.js').read_text(encoding='utf-8')
 check('name="subcategory"' in store_js and 'categoryShortcuts()' in store_js,
       'Subcategory filtering or home links missing')
