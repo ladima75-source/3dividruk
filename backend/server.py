@@ -16,6 +16,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from .db import migrate
 from .catalog import products, update_product, reorder_products
+from .homepage import homepage, update_homepage
 from .orders import create_order, get_public_order, admin_list, update_status, settings, update_settings
 from .services.delivery.nova_poshta import NovaPoshtaAdapter
 from .services.delivery.base import DeliveryNotConfigured, DeliveryUpstreamError
@@ -130,6 +131,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply({'store':'3dividruk','status':'ok','test_mode':settings()['test_mode'],'online_payment_enabled':False})
             if path == '/api/v1/catalog':
                 return self.reply({'products':products(),'taxonomy':json.loads((ROOT/'data/taxonomy.json').read_text(encoding='utf-8'))['categories'],'currency':'UAH'})
+            if path == '/api/v1/homepage':
+                return self.reply(homepage())
             if path == '/api/v1/payments/methods':
                 state = settings()
                 return self.reply({'methods':[{'id':'cod','method':'cod','label':'Післяплата','enabled':True}],
@@ -219,6 +222,8 @@ class Handler(BaseHTTPRequestHandler):
                 if not self.admin():
                     return
                 data = self.body()
+                if path == '/api/v1/admin/homepage' and self.command == 'PATCH':
+                    return self.reply(update_homepage(data))
                 if path == '/api/v1/admin/catalog/order' and self.command == 'PATCH':
                     return self.reply(reorder_products(data.get('category'), data.get('subcategory'), data.get('skus')))
                 if path.startswith('/api/v1/admin/catalog/') and self.command == 'PATCH':
