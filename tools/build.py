@@ -76,9 +76,13 @@ def build():
         if p['id'] in seen:raise ValueError('Duplicate product id '+p['id'])
         seen.add(p['id'])
         p['title']=p.get('title') or p.get('name','')
-        p['category']=category(p['title'])
+        # A manually curated category must survive changes to a marketing title.
+        existing_category=p.get('category')
+        p['category']=existing_category if existing_category in LABELS else category(p['title'])
         p['categoryLabel']=LABELS[p['category']]
-        p['subcategory']=subcategory(p['category'],p['title'])
+        existing_sub=p.get('subcategory')
+        valid_subs={sub for parent,sub in SUBLABELS if parent==p['category']}
+        p['subcategory']=existing_sub if existing_sub in valid_subs else subcategory(p['category'],p['title'])
         p['subcategoryLabel']=SUBLABELS.get((p['category'],p['subcategory']),'')
         p['storefront_visible']=p['category'] not in paused_categories and p['id'] not in paused_product_ids
         p['images']=[i if isinstance(i,str) else i.get('local') or i.get('url') for i in (p.get('images') or p.get('localImages') or p.get('imageUrls') or [])]
