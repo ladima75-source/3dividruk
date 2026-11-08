@@ -65,6 +65,7 @@
    images=list;dirty=true;render();
    if(!backend){try{localSave();msg('Порядок фото змінено в локальній чернетці.','ok')}catch(e){msg(e.message,'warning')}}
    else msg('Порядок фото змінено. Натисніть «Зберегти».','warning');
+   listProducts();
  }
  $('#gallery').addEventListener('click',e=>{
    const cover=e.target.closest('[data-cover]'),up=e.target.closest('[data-up]'),down=e.target.closest('[data-down]');
