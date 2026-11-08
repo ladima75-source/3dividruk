@@ -21,6 +21,27 @@ class Links(HTMLParser):
 
 raw=json.loads((ROOT/'data/catalog.json').read_text(encoding='utf-8-sig'));products=raw['products'] if isinstance(raw,dict) else raw
 ids=set();skus=set();commerce_skus=set();images=set()
+taxonomy=json.loads((ROOT/'data/taxonomy.json').read_text(encoding='utf-8'))['categories']
+category_defs={c['id']:c for c in taxonomy}
+published=[p for p in products if p.get('storefront_visible') is not False]
+for p in products:
+    definition=category_defs.get(p.get('category'))
+    check(definition is not None,'Unknown category '+p['id'])
+    if definition:
+        permitted={child['id']:child['label'] for child in definition.get('subcategories',[])}
+        child=p.get('subcategory')
+        check(not permitted or child in permitted,'Unclassified nested product '+p['id'])
+        check(not child or permitted.get(child)==p.get('subcategoryLabel'),'Incorrect child label '+p['id'])
+        check(p.get('categoryLabel')==definition['label'],'Incorrect parent label '+p['id'])
+check(sum(p['category']=='lighting' for p in published)==63,'Lighting category total changed')
+check(sum(p['category']=='decor' for p in published)==30,'Decor category total changed')
+expected={'table-lamps':33,'pendant-lamps':30,'bowls-organizers':15,'figurines':6,'incense-holders':5,'wall-art':4}
+for child,count in expected.items():
+    check(sum(p.get('subcategory')==child for p in published)==count,
+          f'Unexpected count in {child}; review catalogue migration')
+store_js=(ROOT/'js/store.js').read_text(encoding='utf-8')
+check('name="subcategory"' in store_js and 'categoryShortcuts()' in store_js,
+      'Subcategory filtering or home links missing')
 for p in products:
     check(p['id'] not in ids,'Duplicate id '+p['id']);ids.add(p['id'])
     if p.get('sku'):
