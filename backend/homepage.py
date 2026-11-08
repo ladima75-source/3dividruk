@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 from .db import connect
 from .catalog import source_products
-from .orders import now
 
 ROOT=Path(__file__).resolve().parent.parent
 SECTIONS=('categories','featured','feature','story','benefits')
@@ -22,7 +21,7 @@ def homepage():
         row=db.execute('SELECT value_json FROM store_settings WHERE key=?',('homepage',)).fetchone()
     return json.loads(row[0]) if row else default
 
-def update_homepage(data):
+def validate_homepage(data):
     if not isinstance(data,dict) or set(data)!={'version','hero','categories','featured','feature','story','sections'} or data['version']!=1:
         raise ValueError('INVALID_HOMEPAGE')
     def valid_text(value,limit,required=False):
@@ -53,7 +52,10 @@ def update_homepage(data):
     expected={'lighting','vases','planters','decor'}
     if not isinstance(covers,dict) or set(covers)!=expected:raise ValueError('INVALID_HOMEPAGE_COVERS')
     for category,sku in covers.items():check_sku(sku,category)
-    from .orders import now
+    return data
+
+def update_homepage(data):
+    validate_homepage(data)
     with connect() as db:
         db.execute('INSERT INTO store_settings(key,value_json) VALUES(?,?) '
                    'ON CONFLICT(key) DO UPDATE SET value_json=excluded.value_json',
