@@ -34,8 +34,36 @@ const DiViStore = (() => {
     const id=document.body.dataset.productId||new URLSearchParams(location.search).get('id'),p=products.find(p=>p.id===id||p.commerceSku===id);
     if(!p){root.innerHTML=`<div class="wrap empty"><h1>Виріб не знайдено</h1><a href="${url('catalog.html')}">До каталогу ↗</a></div>`;return}
     document.title=p.title+' · 3DiViDruk';
-    root.innerHTML=`<div class="wrap"><div class="breadcrumb"><a href="${url('index.html')}">Головна</a> / <a href="${url('catalog.html?category='+p.category)}">${esc(p.categoryLabel)}</a> / ${esc(p.sku)}</div><article><div class="product-layout"><div><img id="main-photo" class="main-photo" src="${esc(url(image(p)))}" alt="${esc(p.title)}" width="800" height="800"><div class="thumbs" aria-label="Фотографії виробу">${p.images.map((src,i)=>`<button class="thumb" data-image="${esc(url(src))}" aria-label="Фото ${i+1}"><img src="${esc(url(src))}" alt="${esc(p.title)} — фото ${i+1}" loading="lazy" width="75" height="75"></button>`).join('')}</div><p class="gallery-count">${p.images.length} фото · з публічної картки виробу</p></div><div class="product-info"><span class="eyebrow">${esc(p.categoryLabel)} / 3DiViDruk</span><h1>${esc(p.title)}</h1><span class="price">${DiViCart.money(p.price)}</span><p class="stock">● ${stock(p)} · ${esc(p.sku||'Артикул не вказано')}</p><div class="buy-row"><input id="product-qty" class="field" type="number" min="1" max="99" step="1" value="1" aria-label="Кількість"><button class="btn accent" id="buy-product" ${DiViCart.canBuySku(p)?'':'disabled'}>Додати до кошика <span>+</span></button></div><div class="product-notes"><p>Доставка Україною · вартість за тарифами перевізника</p><p>Наявність та строки виготовлення підтверджуємо окремо.</p><p>Потрібна порада? <a href="tel:+380972920104" style="text-decoration:underline">+38 097 292 01 04</a></p></div><p class="muted" style="margin-top:20px">Ціна та наявність перенесені 08.11.2026. <a class="text-link" href="${esc(p.sourceUrl)}" target="_blank" rel="noopener">Картка на Prom.ua ↗</a></p></div></div><section class="description"><h2>Про виріб</h2>${(p.description||'Опис доступний у вихідній картці виробу.').split(/\n+/).filter(Boolean).map(t=>`<p>${esc(t)}</p>`).join('')}${p.attributes?.length?`<h2>Характеристики</h2><table class="attributes">${p.attributes.map(a=>`<tr><td>${esc(a.name)}</td><td>${esc(a.value)}</td></tr>`).join('')}</table>`:''}</section></article></div>`;
-    root.querySelectorAll('[data-image]').forEach(b=>b.onclick=()=>document.getElementById('main-photo').src=b.dataset.image);
+    root.innerHTML=`<div class="wrap"><div class="breadcrumb"><a href="${url('index.html')}">Головна</a> / <a href="${url('catalog.html?category='+p.category)}">${esc(p.categoryLabel)}</a> / ${esc(p.sku)}</div><article><div class="product-layout"><div><img id="main-photo" class="main-photo" src="${esc(url(image(p)))}" alt="${esc(p.title)}" width="800" height="800" tabindex="0" role="button" aria-label="Збільшити фото: ${esc(p.title)}"><div class="thumbs" aria-label="Фотографії виробу">${p.images.map((src,i)=>`<button class="thumb" data-image="${esc(url(src))}" aria-label="Фото ${i+1}"><img src="${esc(url(src))}" alt="${esc(p.title)} — фото ${i+1}" loading="lazy" width="75" height="75"></button>`).join('')}</div><p class="gallery-count">${p.images.length} фото · з публічної картки виробу</p></div><div class="product-info"><span class="eyebrow">${esc(p.categoryLabel)} / 3DiViDruk</span><h1>${esc(p.title)}</h1><span class="price">${DiViCart.money(p.price)}</span><p class="stock">● ${stock(p)} · ${esc(p.sku||'Артикул не вказано')}</p><div class="buy-row"><input id="product-qty" class="field" type="number" min="1" max="99" step="1" value="1" aria-label="Кількість"><button class="btn accent" id="buy-product" ${DiViCart.canBuySku(p)?'':'disabled'}>Додати до кошика <span>+</span></button></div><div class="product-notes"><p>Доставка Україною · вартість за тарифами перевізника</p><p>Наявність та строки виготовлення підтверджуємо окремо.</p><p>Потрібна порада? <a href="tel:+380972920104" style="text-decoration:underline">+38 097 292 01 04</a></p></div><p class="muted" style="margin-top:20px">Ціна та наявність перенесені 08.11.2026. <a class="text-link" href="${esc(p.sourceUrl)}" target="_blank" rel="noopener">Картка на Prom.ua ↗</a></p></div></div><section class="description"><h2>Про виріб</h2>${(p.description||'Опис доступний у вихідній картці виробу.').split(/\n+/).filter(Boolean).map(t=>`<p>${esc(t)}</p>`).join('')}${p.attributes?.length?`<h2>Характеристики</h2><table class="attributes">${p.attributes.map(a=>`<tr><td>${esc(a.name)}</td><td>${esc(a.value)}</td></tr>`).join('')}</table>`:''}</section></article></div>`;
+    const photos=p.images.length?p.images:[image(p)];
+    const thumbs=[...root.querySelectorAll('[data-image]')],mainPhoto=document.getElementById('main-photo');
+    const gallery=document.createElement('dialog');
+    gallery.className='product-gallery-modal';
+    gallery.setAttribute('aria-label','Фотогалерея: '+p.title);
+    gallery.innerHTML='<div class="gallery-viewer"><button type="button" class="gallery-close" aria-label="Закрити перегляд">✕</button><button type="button" class="gallery-prev" aria-label="Попереднє фото">‹</button><img class="gallery-full-image" alt=""><button type="button" class="gallery-next" aria-label="Наступне фото">›</button><span class="gallery-counter" aria-live="polite"></span></div>';
+    root.append(gallery);
+    const fullImage=gallery.querySelector('.gallery-full-image'),counter=gallery.querySelector('.gallery-counter');
+    let activePhoto=0;
+    function showPhoto(n){
+      activePhoto=(n+photos.length)%photos.length;
+      const src=url(photos[activePhoto]);
+      mainPhoto.src=src;fullImage.src=src;fullImage.alt=p.title+' — фото '+(activePhoto+1);
+      counter.textContent=(activePhoto+1)+' / '+photos.length;
+      thumbs.forEach((b,i)=>{b.setAttribute('aria-pressed',i===activePhoto?'true':'false');b.classList.toggle('selected',i===activePhoto)});
+    }
+    thumbs.forEach((b,i)=>b.onclick=()=>showPhoto(i));
+    function openGallery(){showPhoto(activePhoto);gallery.showModal()}
+    mainPhoto.onclick=openGallery;
+    mainPhoto.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();openGallery()}};
+    gallery.querySelector('.gallery-close').onclick=()=>gallery.close();
+    gallery.querySelector('.gallery-prev').onclick=()=>showPhoto(activePhoto-1);
+    gallery.querySelector('.gallery-next').onclick=()=>showPhoto(activePhoto+1);
+    gallery.onkeydown=e=>{if(e.key==='ArrowLeft'){e.preventDefault();showPhoto(activePhoto-1)}if(e.key==='ArrowRight'){e.preventDefault();showPhoto(activePhoto+1)}};
+    gallery.onclick=e=>{if(e.target===gallery)gallery.close()};
+    let touchStart=null;
+    fullImage.addEventListener('touchstart',e=>{touchStart=e.changedTouches[0]?.clientX??null},{passive:true});
+    fullImage.addEventListener('touchend',e=>{if(touchStart===null)return;const delta=(e.changedTouches[0]?.clientX??touchStart)-touchStart;touchStart=null;if(Math.abs(delta)>45)showPhoto(activePhoto+(delta<0?1:-1))},{passive:true});
+    showPhoto(0);
     document.getElementById('buy-product').onclick=()=>{const qty=document.getElementById('product-qty');if(qty.reportValidity())try{if(DiViCart.addCart(p.commerceSku,Number(qty.value)))toast('Додано до кошика')}catch(e){toast(e.message)}};
   }
   function cartRows(){return DiViCart.rows().map(row=>({row,p:products.find(p=>p.commerceSku===row.sku)}))}
