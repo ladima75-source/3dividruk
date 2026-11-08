@@ -80,9 +80,18 @@ def update_product(sku, data):
         return None
     if not isinstance(data, dict) or not data:
         raise ValueError('EMPTY_PRODUCT_UPDATE')
-    allowed = {'title','description','price','availability','stock_qty','enabled'}
+    allowed = {'title','description','price','availability','stock_qty','enabled','images'}
     if set(data) - allowed:
         raise ValueError('UNSUPPORTED_PRODUCT_FIELD')
+    if 'images' in data:
+        source = next((p for p in source_products() if str(p.get('commerceSku') or p.get('sku')) == sku), None)
+        originals = source.get('images',[]) if source else []
+        proposed = data['images']
+        # Only reorder existing photos; never trust new paths or external media URLs.
+        if (not isinstance(proposed,list) or len(proposed)!=len(originals)
+            or not all(isinstance(x,str) for x in proposed)
+            or len(set(proposed))!=len(proposed) or set(proposed)!=set(originals)):
+            raise ValueError('INVALID_IMAGE_ORDER')
     if 'price' in data:
         minor(data['price'])
     if 'availability' in data and data['availability'] not in ('in_stock','out_of_stock','preorder'):
