@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Візуальний редактор · 3DiViDruk Admin</title>
+<link rel="stylesheet" href="admin-shell.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="workbench.css">
+</head>
+<body>
+<button id="menu" class="dividruk-menu-toggle" aria-label="Відкрити меню">☰</button>
+<div id="overlay" class="dividruk-menu-overlay"></div>
+<aside class="dividruk-admin-sidebar">
+  <div class="dividruk-shell-brand"><b>3DiVi<span>Druk</span></b><small>ADMIN</small></div>
+  <nav>
+    <section><h4>Керування магазином</h4>
+      <a href="dashboard.html"><span>Огляд магазину</span></a>
+      <a class="active" href="workbench.html" aria-current="page"><span>Візуальний редактор</span></a>
+      <a href="index.html#catalog"><span>Каталог і ціни</span></a>
+      <a href="index.html#orders"><span>Замовлення</span></a>
+      <a href="index.html#settings"><span>Оплата та доставка</span></a>
+    </section>
+    <section><h4>Перегляд</h4><a href="../index.html"><span>Відкрити вітрину ↗</span></a></section>
+  </nav><div class="dividruk-shell-foot"><span class="dividruk-shell-badge">Окрема адмінка 3DiViDruk</span></div>
+</aside>
+<header><div><small>3DiViDruk / Вітрина</small><h1>Візуальний редактор товарів</h1></div><a class="secondary studio-nav-link" href="dashboard.html">Огляд →</a></header>
+<main class="studio-main">
+  <div id="state" class="notice" role="status">Завантаження каталогу…</div>
+  <section class="studio-intro card">
+    <div><h2>Розставляйте картки в потрібному порядку</h2><p>Перетягніть картку або натисніть ↑ / ↓. Кнопка «Редагувати» змінює назву, опис і ціну.</p></div>
+    <div class="studio-actions"><button id="export" type="button" class="secondary">Експорт чернетки JSON</button><a id="preview-link" class="secondary studio-nav-link" href="../catalog.html?editorPreview=1">Попередній перегляд ↗</a></div>
+  </section>
+  <form id="auth" class="card" hidden>
+    <h2>Доступ до редагування на сервері</h2>
+    <p>Укажіть токен адміністратора. У браузері він не зберігається.</p>
+    <div class="studio-auth"><label>Токен адміністратора<input type="password" name="token" required autocomplete="off" minlength="24"></label><button type="submit">Увійти</button></div>
+  </form>
+  <section class="card">
+    <div class="studio-filters">
+      <label>Категорія<select id="category"></select></label>
+      <label>Підкатегорія<select id="subcategory"></select></label>
+      <label>Пошук<input id="search" type="search" placeholder="Назва або SKU"></label>
+    </div>
+    <p id="group-help" class="muted"></p>
+  </section>
+  <div class="studio-heading"><h2 id="group-title">Каталог</h2><span id="count"></span></div>
+  <div id="cards" class="studio-grid"></div>
+</main>
+<dialog id="edit-dialog" class="studio-dialog">
+  <form id="edit-form">
+    <header><div><small id="edit-sku"></small><h2>Редагувати товар</h2></div><button type="button" class="secondary" id="close-edit">Закрити</button></header>
+    <label>Назва товару<input name="title" required maxlength="300"></label>
+    <label>Опис товару<textarea name="description" rows="9" maxlength="30000"></textarea></label>
+    <label>Ціна, грн<input name="price" type="number" min="0.01" max="10000000" step="0.01" required></label>
+    <div class="studio-actions"><button type="submit">Зберегти зміни</button><button type="button" class="secondary" id="cancel-edit">Скасувати</button></div>
+    <p id="edit-error" class="studio-error" role="alert"></p>
+  </form>
+</dialog>
+<script src="../config/runtime.js"></script><script src="workbench.js"></script>
+</body></html>
