@@ -36,7 +36,8 @@ const DiViStore = (() => {
   }
   function home(){
     const select=sku=>products.find(p=>p.sku===sku&&DiViCart.canBuySku(p));
-    const hero=select('SKU0001')||products.find(p=>p.category==='lighting')||products[0];
+    const hero=select('SKU0001')||products.find(p=>p.category==='lighting'&&DiViCart.canBuySku(p))||products[0];
+    const heroName=hero.sku==='SKU0001'?'Лампа «Безодня»':hero.title.split('.')[0];
     const featured=[];
     for(const sku of ['SKU0001','SKU0030','SKU0216','SKU0041','SKU MG-0001','SKU0017','SKU0028','SKU0280']){
       const p=select(sku);if(p&&!featured.includes(p))featured.push(p);
@@ -52,9 +53,9 @@ const DiViStore = (() => {
           <h1 id="home-title">Простір.<br>Форма.<br><span>Характер.</span></h1>
           <p>Дизайнерські світильники, вази, кашпо й предмети декору, створені за допомогою 3D-друку у власній майстерні в Україні.</p>
           <div class="home-hero-actions"><a class="btn" href="${url('catalog.html')}">Переглянути вироби <span aria-hidden="true">↗</span></a><a class="home-inline-link" href="${url('about.html')}">Про майстерню</a></div>
-          <div class="home-hero-facts"><span>${products.length} виробів у каталозі</span><span>${categories.length} напрямів дизайну</span></div>
+          <div class="home-hero-facts"><span>Власна майстерня у Дніпрі</span><span>${categories.length} колекцій</span></div>
         </div>
-        <a class="hero-image" href="${productUrl(hero)}" aria-label="Переглянути виріб: ${esc(hero.title)}"><img src="${esc(url(image(hero)))}" alt="${esc(hero.title)}" fetchpriority="high" width="760" height="780"><span class="hero-caption"><span>У фокусі · ${esc(hero.title.split('.')[0])}</span><span>Детальніше ↗</span></span></a>
+        <a class="hero-image" href="${productUrl(hero)}" aria-label="Переглянути виріб: ${esc(hero.title)}"><img src="${esc(url(image(hero)))}" alt="${esc(hero.title)}" fetchpriority="high" width="760" height="780"><span class="hero-caption"><span>У фокусі · ${esc(heroName)}</span><span>Детальніше ↗</span></span></a>
       </section>
       <section class="home-categories" aria-labelledby="home-categories-title">
         <div class="section-head"><div><span class="eyebrow">Каталог 3DiViDruk</span><h2 id="home-categories-title">Знайдіть свій стиль</h2></div><a class="text-link" href="${url('catalog.html')}">Усі категорії ↗</a></div>
