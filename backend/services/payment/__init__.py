@@ -1,0 +1,1 @@
+from .unconfigured import UnconfiguredPaymentAdapter

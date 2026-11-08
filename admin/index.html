@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="uk">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Керування магазином · 3DiViDruk</title><link rel="stylesheet" href="admin-shell.css"><link rel="stylesheet" href="admin.css"></head>
+<body>
+<button class="dividruk-menu-toggle" aria-label="Відкрити меню" id="menu">☰</button><div class="dividruk-menu-overlay" id="overlay"></div>
+<aside class="dividruk-admin-sidebar"><div class="dividruk-shell-brand"><b>3DiVi<span>Druk</span></b><small>КЕРУВАННЯ</small></div><nav><section><h4>Магазин</h4><a href="#catalog" data-tab="catalog">Каталог</a><a href="#orders" data-tab="orders">Замовлення</a><a href="#settings" data-tab="settings">Оплата та доставка</a></section><section><h4>Перегляд</h4><a href="../index.html">Відкрити магазин ↗</a></section></nav><div class="dividruk-shell-foot"><span class="dividruk-shell-badge">Окремі дані 3DiViDruk</span></div></aside>
+<header><div><small>3DiViDruk</small><h1 id="page-title">Каталог</h1></div><button id="logout" class="secondary" hidden>Вийти</button></header>
+<main>
+<p id="notice" class="notice" role="status"></p>
+<section id="login" class="card" hidden><h2>Вхід адміністратора</h2><p>Уведіть токен цього магазину. Він зберігається лише до закриття сторінки.</p><form id="login-form"><label>Токен адміністратора<input id="token" type="password" autocomplete="off" required minlength="24"></label><button>Увійти</button></form></section>
+<section id="catalog-panel"><div class="toolbar"><label>Пошук товарів<input id="search" type="search" placeholder="Назва або SKU"></label><span id="count"></span><button id="reload" class="secondary">Оновити</button></div><div class="table-scroll"><table><thead><tr><th>Товар</th><th>SKU</th><th>Ціна</th><th>Наявність</th><th></th></tr></thead><tbody id="catalog-rows"></tbody></table></div></section>
+<section id="orders-panel" hidden><div id="order-summary" class="notice"></div><div id="orders"></div></section>
+<section id="settings-panel" hidden><div id="settings" class="card"></div></section>
+</main>
+<dialog id="product-dialog"><form id="product-form"><header><h2>Товар</h2><button type="button" class="secondary" data-close>Закрити</button></header><p id="edit-sku"></p><label>Назва<input name="title" required maxlength="300"></label><div class="form-grid"><label>Ціна, грн<input name="price" type="number" min="0.01" max="10000000" step="0.01" required></label><label>Наявність<select name="availability"><option value="in_stock">В наявності</option><option value="preorder">Під замовлення</option><option value="out_of_stock">Немає в наявності</option></select></label><label>Кількість на складі<input name="stock_qty" type="number" min="0" step="1" placeholder="Невідомо"></label></div><label>Опис<textarea name="description" rows="8" maxlength="30000"></textarea></label><label class="check"><input name="enabled" type="checkbox"> Продавати товар</label><p id="product-error" role="alert"></p><button>Зберегти товар</button></form></dialog>
+<dialog id="order-dialog"><header><h2 id="order-title"></h2><button type="button" class="secondary" data-close>Закрити</button></header><div id="order-detail"></div></dialog>
+<script src="../config/runtime.js"></script><script src="admin.js"></script>
+</body></html>

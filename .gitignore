@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+.runtime/
+backend/runtime/
+*.sqlite*
+*.db
+*.log
+__pycache__/
+*.py[cod]
+.venv/
+node_modules/
+work/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,65 @@
+{
+  "source": "https://3dividruk.com.ua/ua/",
+  "discovered": 183,
+  "imported": 183,
+  "failedProducts": [],
+  "duplicateNonEmptySkus": [
+    "SKU0285"
+  ],
+  "available": 182,
+  "outOfStock": 1,
+  "downloadedLocalImages": 1017,
+  "imageFailures": 0,
+  "pages": [
+    {
+      "url": "https://3dividruk.com.ua/ua/g141238021-dom-interer?product_items_per_page=48",
+      "category": "home-interior",
+      "page": 1,
+      "products": 48,
+      "newProducts": 48
+    },
+    {
+      "url": "https://3dividruk.com.ua/ua/g141238021-dom-interer/page_2?product_items_per_page=48",
+      "category": "home-interior",
+      "page": 2,
+      "products": 48,
+      "newProducts": 48
+    },
+    {
+      "url": "https://3dividruk.com.ua/ua/g141238021-dom-interer/page_3?product_items_per_page=48",
+      "category": "home-interior",
+      "page": 3,
+      "products": 48,
+      "newProducts": 48
+    },
+    {
+      "url": "https://3dividruk.com.ua/ua/g141238021-dom-interer/page_4?product_items_per_page=48",
+      "category": "home-interior",
+      "page": 4,
+      "products": 34,
+      "newProducts": 34
+    },
+    {
+      "url": "https://3dividruk.com.ua/ua/g141238021-dom-interer/page_5?product_items_per_page=48",
+      "category": "home-interior",
+      "page": 5,
+      "products": 24,
+      "newProducts": 0
+    },
+    {
+      "url": "https://3dividruk.com.ua/ua/g147372660-sumki-magelle?product_items_per_page=48",
+      "category": "bags-magelle",
+      "page": 1,
+      "products": 5,
+      "newProducts": 5
+    },
+    {
+      "url": "https://3dividruk.com.ua/ua/g147372660-sumki-magelle/page_2?product_items_per_page=48",
+      "category": "bags-magelle",
+      "page": 2,
+      "products": 5,
+      "newProducts": 0
+    }
+  ],
+  "scope": "Public storefront pages only; no login, private export, or write to Prom.ua."
+}

@@ -1,0 +1,27 @@
+// Behavioral tests: cart isolation/quantity validation and network-free Pages checkout.
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const vm=require('node:vm');
+const path=require('node:path');
+const root=path.resolve(__dirname,'..');
+const values=new Map([['bb610_market_cart_v2',JSON.stringify([{sku:'OLD',qty:5}])]]);
+const storage={getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)};
+const context=vm.createContext({localStorage:storage,sessionStorage:storage,document:{querySelectorAll:()=>[]},Intl,crypto:require('node:crypto').webcrypto,setTimeout,clearTimeout,URL,AbortController,location:{origin:'http://127.0.0.1:8080'},window:{DIVIDRUK_COMMERCE_CONFIG:{apiBaseUrl:'',checkoutMode:'preview',endpoints:{createOrder:'/api/v1/orders'}}},fetch:()=>{throw new Error('Preview must never send an order')}});
+vm.runInContext(fs.readFileSync(path.join(root,'js/cart-core.js'),'utf8')+';globalThis.cart=DiViCart;',context);
+const cart=context.cart;
+cart.bindCatalog([{sku:'SKU0001',price:700,availability:'in_stock'},{sku:'SKU0002',price:900,availability:'out_of_stock'},{sku:'SKU0003',price:null,availability:'in_stock'}]);
+assert.equal(cart.rows().length,0,'Never import another store cart');
+assert.equal(cart.addCart('OLD'),false);
+assert.equal(cart.addCart('SKU0002'),false);
+assert.equal(cart.addCart('SKU0003'),false);
+assert.equal(cart.addCart('SKU0001',-1),false);
+assert.equal(cart.addCart('SKU0001',1.5),false);
+assert.equal(cart.addCart('SKU0001',2),true);
+assert.equal(cart.rows()[0].qty,2);
+cart.change('SKU0001',200);assert.equal(cart.rows()[0].qty,99);
+cart.change('SKU0001',-200);assert.equal(cart.rows()[0].qty,1);
+cart.remove('SKU0001');assert.equal(cart.rows().length,0);
+assert.equal(JSON.parse(values.get('bb610_market_cart_v2'))[0].qty,5);
+vm.runInContext(fs.readFileSync(path.join(root,'js/order-client.js'),'utf8')+';globalThis.client=DiViOrderClient;',context);
+assert.equal(context.client.configured(),false);
+(async()=>{await assert.rejects(context.client.createOrder({}),/BACKEND_NOT_CONFIGURED/);assert.deepEqual(JSON.parse(JSON.stringify(await context.client.paymentMethods())),{methods:[]});context.window.DIVIDRUK_COMMERCE_CONFIG.checkoutMode='backend';assert.equal(context.client.configured(),true,'Same-origin independent backend supported');console.log('Passed: namespace isolation, stock/price validation, quantity bounds, preview network lock, same-origin backend.');})().catch(e=>{console.error(e);process.exitCode=1});

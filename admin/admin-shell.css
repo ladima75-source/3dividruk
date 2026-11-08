@@ -1,0 +1,215 @@
+:root{--dividruk-shell-w:260px}
+
+.dividruk-admin-sidebar{
+  position:fixed;
+  inset:0 auto 0 0;
+  width:var(--dividruk-shell-w);
+  min-width:var(--dividruk-shell-w);
+  max-width:var(--dividruk-shell-w);
+  background:#0b1216;
+  border-right:1px solid #26343a;
+  z-index:80;
+  display:flex;
+  flex-direction:column;
+  color:#fff;
+  font:13px Arial,sans-serif;
+  overflow:hidden;
+}
+
+.dividruk-shell-brand{
+  height:64px;
+  min-height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:0 16px;
+  border-bottom:1px solid #26343a;
+}
+
+.dividruk-shell-brand b{
+  display:block;
+  min-width:0;
+  font-size:13px;
+  white-space:nowrap;
+}
+
+.dividruk-shell-brand b span{color:#66df83}
+
+.dividruk-shell-brand small{
+  flex:0 0 auto;
+  font-size:9px;
+  color:#86969d;
+  border:1px solid #34434a;
+  border-radius:999px;
+  padding:3px 6px;
+}
+
+.dividruk-admin-sidebar nav{
+  display:block!important;
+  width:100%;
+  padding:10px 10px 14px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  flex:1 1 auto;
+}
+
+.dividruk-admin-sidebar nav section{
+  display:block!important;
+  width:100%;
+  margin:0 0 14px 0;
+  padding:0;
+}
+
+.dividruk-admin-sidebar nav section:last-child{margin-bottom:0}
+
+.dividruk-admin-sidebar nav h4{
+  display:block;
+  width:100%;
+  font-size:9px;
+  line-height:1.2;
+  text-transform:uppercase;
+  letter-spacing:.11em;
+  color:#6f7f87;
+  margin:9px 9px 6px;
+  padding:0;
+  white-space:nowrap;
+}
+
+.dividruk-admin-sidebar nav a{
+  display:flex!important;
+  width:100%!important;
+  min-width:0;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  color:#cbd4d8;
+  text-decoration:none;
+  padding:9px 10px;
+  border-radius:7px;
+  margin:2px 0;
+  overflow:visible;
+  white-space:normal;
+}
+
+.dividruk-admin-sidebar nav a:hover{
+  background:#101b20;
+  color:#fff;
+}
+
+.dividruk-admin-sidebar nav a.active{
+  background:#172126;
+  color:#f1b02c;
+}
+
+.dividruk-admin-sidebar nav a span{
+  display:block;
+  flex:1 1 auto;
+  min-width:0;
+  line-height:1.25;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  word-break:normal;
+}
+
+.dividruk-admin-sidebar svg,
+.dividruk-menu-toggle svg{
+  width:17px;
+  height:17px;
+  flex:0 0 17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.7;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+
+.dividruk-shell-foot{
+  flex:0 0 auto;
+  padding:12px 16px;
+  border-top:1px solid #26343a;
+}
+
+.dividruk-shell-badge{
+  font-size:9px;
+  color:#8fa0a7;
+  border:1px solid #34434a;
+  border-radius:999px;
+  padding:4px 7px;
+}
+
+.dividruk-menu-toggle{
+  display:none;
+  position:fixed;
+  left:10px;
+  top:10px;
+  z-index:95;
+  width:42px;
+  height:42px;
+  align-items:center;
+  justify-content:center;
+  background:#111a1f;
+  color:#fff;
+  border:1px solid #34434a;
+  border-radius:8px;
+}
+
+.dividruk-menu-overlay{display:none}
+
+body{
+  padding-left:var(--dividruk-shell-w)!important;
+}
+
+.dividruk-admin-sidebar~header,
+.dividruk-admin-sidebar~main,
+body>.top{
+  margin-left:0!important;
+}
+
+body>header nav:not(.dividruk-admin-sidebar nav),
+body>.top nav{
+  display:none!important;
+}
+
+/* Prevent legacy layouts from turning shell groups into columns */
+.dividruk-admin-sidebar *,
+.dividruk-admin-sidebar nav,
+.dividruk-admin-sidebar nav section{
+  grid-template-columns:none!important;
+}
+
+@media(max-width:900px){
+  :root{--dividruk-shell-w:260px}
+
+  body{padding-left:0!important}
+
+  .dividruk-admin-sidebar{
+    transform:translateX(-100%);
+    transition:transform .2s ease;
+    box-shadow:none;
+  }
+
+  .dividruk-menu-open .dividruk-admin-sidebar{
+    transform:none;
+    box-shadow:12px 0 30px rgba(0,0,0,.35);
+  }
+
+  .dividruk-menu-toggle{display:flex}
+
+  .dividruk-menu-open .dividruk-menu-overlay{
+    display:block;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    z-index:70;
+  }
+
+  body>header{padding-left:62px!important}
+
+  .dividruk-admin-sidebar~header,
+  .dividruk-admin-sidebar~main,
+  body>.top{
+    margin-left:0!important;
+  }
+}
