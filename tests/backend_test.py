@@ -13,6 +13,7 @@ from unittest.mock import patch
 from backend.db import migrate, connect, database_path
 from backend import orders
 from backend.catalog import update_product, reorder_products, products
+from backend.homepage import homepage, validate_homepage, update_homepage
 from backend.server import make_server, RATE
 
 class CommerceTests(unittest.TestCase):
@@ -119,6 +120,40 @@ class CommerceTests(unittest.TestCase):
             reorder_products('lighting','table-lamps',['MG-0003','SKU0001'])
         self.assertEqual({p['sku']:p['sort_order'] for p in products() if 'sort_order' in p},
                          {'SKU0001':1,'SKU0003':0})
+
+    def test_homepage_editor_validation_and_persistence(self):
+        root=Path(__file__).resolve().parents[1]
+        master=json.loads((root/'data/catalog.json').read_text(encoding='utf-8'))
+        defaults=json.loads((root/'data/homepage.json').read_text(encoding='utf-8'))
+        chosen=set(defaults['featured']['skus']+[defaults['hero']['sku'],defaults['feature']['sku']]+list(defaults['categories']['covers'].values()))
+        selected=[p for p in master['products'] if p.get('commerceSku') in chosen]
+        self.assertEqual(len(selected),len(chosen))
+        self.catalog.write_text(json.dumps({'products':selected}),encoding='utf-8')
+        self.assertEqual(validate_homepage(defaults),defaults)
+        self.assertEqual(update_homepage(defaults),defaults)
+        changed=copy.deepcopy(defaults)
+        changed['hero']['titleLines'][0]='Оновлена форма.'
+        update_homepage(changed)
+        self.assertEqual(homepage()['hero']['titleLines'][0],'Оновлена форма.')
+        invalid=copy.deepcopy(defaults)
+        invalid['featured']['skus']=['SKU MG-0001']
+        with self.assertRaisesRegex(ValueError,'INVALID_HOMEPAGE_SKU'):
+            validate_homepage(invalid)
+        invalid=copy.deepcopy(defaults)
+        invalid['sections']=['story','story','feature','categories','benefits']
+        with self.assertRaisesRegex(ValueError,'INVALID_HOMEPAGE_SECTION'):
+            validate_homepage(invalid)
+
+    def test_media_editor_only_reorders_existing_photos(self):
+        raw=json.loads(self.catalog.read_text(encoding='utf-8'))
+        raw['products'][0]['images']=['assets/products/p1/a.jpg','assets/products/p1/b.jpg']
+        self.catalog.write_text(json.dumps(raw),encoding='utf-8')
+        result=update_product('SKU0001',{'images':['assets/products/p1/b.jpg','assets/products/p1/a.jpg']})
+        self.assertEqual(result['images'][0],'assets/products/p1/b.jpg')
+        with self.assertRaisesRegex(ValueError,'INVALID_IMAGE_ORDER'):
+            update_product('SKU0001',{'images':['https://attacker.invalid/f.jpg','assets/products/p1/a.jpg']})
+        with self.assertRaisesRegex(ValueError,'INVALID_IMAGE_ORDER'):
+            update_product('SKU0001',{'images':['assets/products/p1/a.jpg','assets/products/p1/a.jpg']})
 
     def test_http_auth_runtime_origin_and_private_paths(self):
         RATE.clear()
