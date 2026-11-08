@@ -1,0 +1,7 @@
+{
+  "paused_categories": [
+    "bags"
+  ],
+  "paused_product_ids": [],
+  "comment": "Сумки MaGelle тимчасово приховані з публічної вітрини; товарні записи, SKU, ціни та фото збережені. Для повернення видаліть bags з paused_categories та запустіть tools/build.py."
+}
