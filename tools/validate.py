@@ -1,5 +1,6 @@
 """Validate imported data, assets, generated routes, and no-cross-store boundaries."""
 import json
+import csv
 import re
 from pathlib import Path
 from urllib.parse import urlparse, unquote
@@ -47,6 +48,23 @@ for file in ROOT.rglob('*.html'):
         expected=SITE if file.name=='index.html' else SITE+file.name
         canonical=re.search(r'<link rel="canonical" href="([^"]+)"',text)
         check(canonical is not None and canonical.group(1)==expected,f'Wrong canonical {relative}: expected {expected}')
+# Paused collections stay in the master catalog but must not be exposed to shoppers or feeds.
+visibility=json.loads((ROOT/'config/storefront-visibility.json').read_text(encoding='utf-8'))
+paused_categories=set(visibility.get('paused_categories',[]))
+paused_ids=set(visibility.get('paused_product_ids',[]))
+paused=[p for p in products if p['category'] in paused_categories or p['id'] in paused_ids]
+for p in products:
+    check(p.get('storefront_visible') is (p not in paused),'Visibility mismatch '+p['id'])
+sitemap=(ROOT/'sitemap.xml').read_text(encoding='utf-8')
+for p in paused:
+    check(SITE+'products/'+p['id']+'/' not in sitemap,'Paused product in sitemap '+p['id'])
+    page=(ROOT/'products'/p['id']/'index.html').read_text(encoding='utf-8')
+    check('data-paused="true"' in page,'Paused product page not neutral '+p['id'])
+hidden_skus={p.get('commerceSku') or p.get('sku') for p in paused}
+for feed in ('google-merchant-draft.csv','meta-catalog-draft.csv'):
+    with (ROOT/'feeds'/feed).open(encoding='utf-8-sig',newline='') as f:
+        submitted={row['id'] for row in csv.DictReader(f) if row.get('id')}
+        check(not hidden_skus.intersection(submitted),'Paused SKU in feed '+feed)
 for folder in ('js','config','css','admin'):
     for file in (ROOT/folder).rglob('*'):
         if not file.is_file() or file.suffix not in ('.js','.css','.html','.json'):continue
