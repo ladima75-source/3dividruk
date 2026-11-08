@@ -14,7 +14,7 @@
  const allowed=p=>p.storefront_visible!==false&&p.enabled!==false;
  const active=()=>catalog.filter(allowed);
  const item=id=>active().find(p=>sku(p)===id||p.sku===id);
- function photo(p){let im=p?.images?.[0]||'assets/placeholder.svg';const override=draft()?.products?.[sku(p)]?.images;if(Array.isArray(override)&&override.length&&p.images.includes(override[0]))im=override[0];return /^https:\/\//.test(im)?im:'../'+im.replace(/^\/|^\.\//,'')}
+ function photo(p){let im=p?.images?.[0]||'assets/placeholder.svg';const override=p?draft()?.products?.[sku(p)]?.images:null;if(Array.isArray(override)&&override.length&&p.images.includes(override[0]))im=override[0];return /^https:\/\//.test(im)?im:'../'+im.replace(/^\/|^\.\//,'')}
  function productsSelect(id,group='',selected=''){
    const filtered=active().filter(p=>!group||p.category===group);
    const el=$('#'+id);el.innerHTML=filtered.map(p=>'<option value="'+esc(sku(p))+'">'+esc(p.sku+' · '+p.title.slice(0,95))+'</option>').join('');
