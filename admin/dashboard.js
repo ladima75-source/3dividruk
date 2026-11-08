@@ -16,7 +16,7 @@
    $('#k-paused').textContent=items.length-active.length;
    $('#k-groups').textContent=cats.length+' / '+subs;
    const paused=items.filter(p=>p.storefront_visible===false);
-   const drafts=(()=>{try{const obj=JSON.parse(localStorage.getItem('3dividruk_admin_draft_v1')||'{}');return (Object.keys(obj.products||{}).length+Object.keys(obj.orders||{}).length)}catch{return 0}})();
+   const drafts=(()=>{try{const obj=JSON.parse(localStorage.getItem('3dividruk_admin_draft_v1')||'{}');return (Object.keys(obj.products||{}).length+Object.keys(obj.orders||{}).length+(obj.homepage?1:0))}catch{return 0}})();
    const alerts=[
     {head:'Магазин ще не приймає реальних замовлень',body:'GitHub Pages є тестовою вітриною, а окремий backend поки не розміщено.',warn:true},
     ...(paused.length?[{head:'На паузі: '+paused.length+' товарів',body:'Позиції MaGelle збережені у каталозі, але приховані з продажу.'}]:[]),
