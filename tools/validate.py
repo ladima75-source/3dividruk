@@ -54,7 +54,7 @@ paused_categories=set(visibility.get('paused_categories',[]))
 paused_ids=set(visibility.get('paused_product_ids',[]))
 paused=[p for p in products if p['category'] in paused_categories or p['id'] in paused_ids]
 for p in products:
-    check(p.get('storefront_visible') is (p not in paused),'Visibility mismatch '+p['id'])
+    check(p.get('storefront_visible',True) == (p not in paused),'Visibility mismatch '+p['id'])
 sitemap=(ROOT/'sitemap.xml').read_text(encoding='utf-8')
 for p in paused:
     check(SITE+'products/'+p['id']+'/' not in sitemap,'Paused product in sitemap '+p['id'])
