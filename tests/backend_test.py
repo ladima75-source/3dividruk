@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 from backend.db import migrate, connect, database_path
 from backend import orders
-from backend.catalog import update_product
+from backend.catalog import update_product, reorder_products, products
 from backend.server import make_server, RATE
 
 class CommerceTests(unittest.TestCase):
@@ -98,6 +98,27 @@ class CommerceTests(unittest.TestCase):
         payload = {**self.payload,'test_order':False}
         with self.assertRaisesRegex(ValueError,'CHECKOUT_DISABLED'):
             orders.create_order(payload,'live-locked-0001')
+
+    def test_visual_merchandising_order_is_atomic_and_store_local(self):
+        data=json.loads(self.catalog.read_text(encoding='utf-8'))
+        for product in data['products']:
+            if product['sku'] in ('SKU0001','SKU0003'):
+                product['category']='lighting'
+                product['subcategory']='table-lamps'
+        self.catalog.write_text(json.dumps(data),encoding='utf-8')
+        update_product('SKU0001',{'price':2250})
+        result=reorder_products('lighting','table-lamps',['SKU0003','SKU0001'])
+        self.assertEqual(result['count'],2)
+        by_sku={p['sku']:p for p in products()}
+        self.assertEqual(by_sku['SKU0003']['sort_order'],0)
+        self.assertEqual(by_sku['SKU0001']['sort_order'],1)
+        self.assertEqual(by_sku['SKU0001']['price'],2250)
+        with self.assertRaisesRegex(ValueError,'DUPLICATE_SKU'):
+            reorder_products('lighting','table-lamps',['SKU0003','SKU0003'])
+        with self.assertRaisesRegex(ValueError,'ORDER_SCOPE_MISMATCH'):
+            reorder_products('lighting','table-lamps',['MG-0003','SKU0001'])
+        self.assertEqual({p['sku']:p['sort_order'] for p in products() if 'sort_order' in p},
+                         {'SKU0001':1,'SKU0003':0})
 
     def test_http_auth_runtime_origin_and_private_paths(self):
         RATE.clear()
