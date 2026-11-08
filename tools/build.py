@@ -22,11 +22,12 @@ def category(title):
     if 'горщик' in title or 'кашпо' in title:return 'planters'
     return 'decor'
 
-def shell(title,page,body='',depth=0,product=None):
+def shell(title,page,body='',depth=0,product=None,route_name=None):
     prefix='../'*depth or './'
     e=html.escape
     description=(product or {}).get('description','Дизайнерські лампи, вази, кашпо, декор та аксесуари з 3D-друку. Власне виробництво в Україні.')[:180]
-    route=f'products/{product["id"]}/' if product else ('index.html' if page=='home' else page+'.html')
+    page_route=route_name or page
+    route=f'products/{product["id"]}/' if product else ('' if page_route=='home' else page_route+'.html')
     canonical=SITE+route
     structured=''
     if product:
@@ -79,8 +80,8 @@ def build():
       'privacy':('Обробка даних.','<p>Цей сайт працює в тестовому режимі. Використовуйте вигадані дані при перевірці оформлення.</p><h2>Тестова вітрина на GitHub Pages</h2><p>Кошик зберігається локально у вашому браузері. Контактні дані з демонстраційної форми не надсилаються продавцю і не зберігаються цією програмою. Для очищення кошика видаліть товари або дані сайту у браузері.</p><h2>Окремий тестовий backend</h2><p>Якщо вітрина обслуговується окремим backend, тестові замовлення зберігаються у його власній базі. Доступ адміністратора захищений авторизацією. Успішне замовлення відображається лише у поточній сесії за приватним токеном.</p><h2>Зовнішні сервіси</h2><p>GitHub Pages як хостинг може обробляти технічні журнали запитів відповідно до власної політики. На сайті немає підключених рекламних пікселів BB610. Посилання на Prom.ua відкривають діючий магазин з його правилами обробки даних.</p><p>До запуску реальних продажів власник має затвердити реквізити, строки зберігання та остаточну політику конфіденційності.</p>')
     }
     for route,(title,content) in policies.items():
-        (ROOT/(route+'.html')).write_text(shell(title,'policy',policy(title,content)),encoding='utf-8')
-    (ROOT/'404.html').write_text(shell('Сторінку не знайдено','policy',policy('Цієї сторінки ще немає.','<p><a class="btn" href="'+SITE+'catalog.html">Відкрити каталог ↗</a></p>')),encoding='utf-8')
+        (ROOT/(route+'.html')).write_text(shell(title,'policy',policy(title,content),route_name=route),encoding='utf-8')
+    (ROOT/'404.html').write_text(shell('Сторінку не знайдено','policy',policy('Цієї сторінки ще немає.','<p><a class="btn" href="'+SITE+'catalog.html">Відкрити каталог ↗</a></p>'),route_name='404'),encoding='utf-8')
     urls=[SITE,SITE+'catalog.html']+[SITE+'products/'+p['id']+'/' for p in products]
     (ROOT/'sitemap.xml').write_text('<?xml version="1.0" encoding="utf-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+''.join('<url><loc>'+xml(u)+'</loc></url>' for u in urls)+'</urlset>',encoding='utf-8')
     (ROOT/'robots.txt').write_text('User-agent: *\nDisallow: /\n# Preview only. Remove noindex/disallow after launch verification.\n',encoding='utf-8')

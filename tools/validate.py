@@ -6,6 +6,7 @@ from urllib.parse import urlparse, unquote
 from html.parser import HTMLParser
 
 ROOT=Path(__file__).resolve().parents[1]
+SITE='https://ladima75-source.github.io/3dividruk/'
 errors=[]
 def check(ok,message):
     if not ok:errors.append(message)
@@ -41,6 +42,11 @@ for file in ROOT.rglob('*.html'):
         if target.is_dir():target=target/'index.html'
         check(target.is_file(),f'Broken asset/link {file.relative_to(ROOT)} -> {ref}')
     if 'admin' not in file.relative_to(ROOT).parts:check('noindex' in text,'Preview accidentally indexable '+str(file))
+    relative=file.relative_to(ROOT).as_posix()
+    if len(file.relative_to(ROOT).parts)==1 and file.name!='product.html':
+        expected=SITE if file.name=='index.html' else SITE+file.name
+        canonical=re.search(r'<link rel="canonical" href="([^"]+)"',text)
+        check(canonical is not None and canonical.group(1)==expected,f'Wrong canonical {relative}: expected {expected}')
 for folder in ('js','config','css','admin'):
     for file in (ROOT/folder).rglob('*'):
         if not file.is_file() or file.suffix not in ('.js','.css','.html','.json'):continue
