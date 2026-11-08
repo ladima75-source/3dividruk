@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "lighting",
+      "label": "Освітлення",
+      "subcategories": [
+        {
+          "id": "table-lamps",
+          "label": "Настільні лампи"
+        },
+        {
+          "id": "pendant-lamps",
+          "label": "Підвісні світильники"
+        }
+      ]
+    },
+    {
+      "id": "vases",
+      "label": "Вази",
+      "subcategories": []
+    },
+    {
+      "id": "planters",
+      "label": "Кашпо",
+      "subcategories": []
+    },
+    {
+      "id": "decor",
+      "label": "Декор",
+      "subcategories": [
+        {
+          "id": "bowls-organizers",
+          "label": "Декоративні чаші та органайзери"
+        },
+        {
+          "id": "figurines",
+          "label": "Статуетки та фігурки"
+        },
+        {
+          "id": "incense-holders",
+          "label": "Підставки для пахощів"
+        },
+        {
+          "id": "wall-art",
+          "label": "Настінний декор"
+        }
+      ]
+    },
+    {
+      "id": "bags",
+      "label": "Сумки MaGelle",
+      "subcategories": [],
+      "paused": true
+    }
+  ],
+  "note": "Parent category and child subcategory are stable IDs. Bags remain paused; taxonomy does not publish them."
+}
