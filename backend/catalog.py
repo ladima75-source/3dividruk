@@ -36,6 +36,8 @@ def products(con=None):
 
 def available(product):
     state = str(product.get('availability', '')).lower().replace('-', '_')
+    if product.get('storefront_visible') is False:
+        return False
     if product.get('enabled') is False or state in ('out_of_stock','outofstock','unavailable','sold_out','нет в наличии','немає в наявності'):
         return False
     if product.get('available') is False:
