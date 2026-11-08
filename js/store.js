@@ -70,8 +70,10 @@ const DiViStore = (() => {
     for(const sku of (Array.isArray(featCfg.skus)?featCfg.skus:['SKU0001','SKU0030','SKU0216','SKU0041','SKU0017','SKU0028','SKU0280'])){
       const p=select(sku);if(p&&!featured.includes(p))featured.push(p);
     }
-    for(const c of ['lighting','vases','planters','decor']){
-      if(!featured.some(p=>p.category===c)){const p=products.find(x=>x.category===c&&DiViCart.canBuySku(x));if(p)featured.push(p)}
+    if(!homepageConfig||!Array.isArray(featCfg.skus)){
+      for(const c of ['lighting','vases','planters','decor']){
+        if(!featured.some(p=>p.category===c)){const p=products.find(x=>x.category===c&&DiViCart.canBuySku(x));if(p)featured.push(p)}
+      }
     }
     const spotlight=select(spotCfg.sku||'SKU0017')||products.find(p=>p.category==='lighting'&&p.id!==hero.id)||hero;
     root.innerHTML=`<div class="wrap homepage">
@@ -103,7 +105,7 @@ const DiViStore = (() => {
     const names=['categories','featured','feature','story','benefits'];
     const sectionNodes=Object.fromEntries(names.map(id=>[id,root.querySelector(({categories:'.home-categories',featured:'.home-picks',feature:'.home-feature',story:'.story',benefits:'.benefits'})[id])]));
     const requested=Array.isArray(h.sections)?h.sections:names;
-    const priority=[...new Set(requested.filter(id=>names.includes(id))),...names];
+    const priority=[...new Set([...requested.filter(id=>names.includes(id)),...names])];
     const wrapper=root.querySelector('.homepage');
     priority.forEach(id=>{if(sectionNodes[id])wrapper.appendChild(sectionNodes[id])});
     wireAdd();
