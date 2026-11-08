@@ -11,17 +11,67 @@ const DiViStore = (() => {
   const stock=p=>p.availability==='in_stock'?'В наявності':p.availability==='preorder'?'Під замовлення':p.availability==='out_of_stock'?'Немає в наявності':'Наявність уточнюємо';
   function toast(message){let t=document.querySelector('.toast');if(!t){t=document.createElement('div');t.className='toast';t.setAttribute('role','status');document.body.append(t)}t.innerHTML=esc(message)+' <a href="'+url('cart.html')+'">До кошика ↗</a>';clearTimeout(t.timer);t.timer=setTimeout(()=>t.remove(),4500)}
   function mountShell(){
-    document.getElementById('site-header').innerHTML=`<a class="skip" href="#main">До вмісту</a><div class="announcement">СТВОРЕНО В УКРАЇНІ · НАДРУКОВАНО З ХАРАКТЕРОМ</div><header class="top"><div class="wrap"><a class="logo" href="${url('index.html')}" aria-label="3DiViDruk — головна">3DiVi<i>Druk</i><small>DESIGN IN A NEW DIMENSION</small></a><nav class="nav" aria-label="Основна навігація"><a href="${url('catalog.html')}">Усі вироби</a><a href="${url('catalog.html?category=lighting')}">Освітлення</a><a href="${url('catalog.html?category=vases')}">Вази</a><a href="${url('about.html')}">Про майстерню</a></nav><div class="top-actions"><a class="phone" href="tel:+380972920104">+38 097 292 01 04</a><a class="cart-link" href="${url('cart.html')}">Кошик <span class="count" data-cart-count>0</span></a></div></div></header>${backend()?'<div class="preview">Окремий тестовий магазин · замовлення позначаються як тестові · онлайн-оплата вимкнена</div>':'<div class="preview">Тестова вітрина · перевірте кошик та оформлення. Купівля доступна в <a href="https://3dividruk.com.ua/ua/" style="text-decoration:underline">магазині на Prom.ua ↗</a></div>'}`;
+    document.getElementById('site-header').innerHTML=`<a class="skip" href="#main">До вмісту</a><div class="announcement">СТВОРЕНО В УКРАЇНІ · НАДРУКОВАНО З ХАРАКТЕРОМ</div><header class="top"><div class="wrap"><a class="logo" href="${url('index.html')}" aria-label="3DiViDruk — головна">3DiVi<i>Druk</i><small>DESIGN IN A NEW DIMENSION</small></a><button class="menu-toggle" type="button" aria-controls="primary-nav" aria-expanded="false" aria-label="Відкрити меню"><span aria-hidden="true">☰</span> Меню</button><nav id="primary-nav" class="nav" aria-label="Основна навігація"><a data-nav="home" href="${url('index.html')}">Головна</a><a data-nav="catalog" href="${url('catalog.html')}">Каталог</a><a data-nav="lighting" href="${url('catalog.html?category=lighting')}">Лампи</a><a data-nav="vases" href="${url('catalog.html?category=vases')}">Вази</a><a data-nav="planters" href="${url('catalog.html?category=planters')}">Кашпо</a><a data-nav="decor" href="${url('catalog.html?category=decor')}">Декор</a><a data-nav="bags" href="${url('catalog.html?category=bags')}">Сумки</a><a data-nav="about" href="${url('about.html')}">Про нас</a></nav><div class="top-actions"><a class="phone" href="tel:+380972920104">+38 097 292 01 04</a><a class="cart-link" href="${url('cart.html')}">Кошик <span class="count" data-cart-count>0</span></a></div></div></header>${backend()?'<div class="preview">Окремий тестовий магазин · замовлення позначаються як тестові · онлайн-оплата вимкнена</div>':'<div class="preview">Тестова вітрина · перевірте кошик та оформлення. Купівля доступна в <a href="https://3dividruk.com.ua/ua/" style="text-decoration:underline">магазині на Prom.ua ↗</a></div>'}`;
     document.getElementById('site-footer').innerHTML=`<footer><div class="wrap"><div class="footer-grid"><div class="footer-brand"><a class="logo" href="${url('index.html')}">3DiVi<i>Druk</i></a><p style="margin-top:15px;max-width:350px">Предмети з характером для вашого простору.<br>Власне виробництво за допомогою 3D-друку.</p></div><nav aria-label="Інформація"><a href="${url('delivery.html')}">Доставка та оплата</a><a href="${url('returns.html')}">Повернення та обмін</a><a href="${url('privacy.html')}">Конфіденційність</a><a href="${url('contacts.html')}">Контакти</a></nav><nav aria-label="Контакти"><a href="tel:+380972920104">+38 097 292 01 04</a><p>Дніпро, М. Рильського, 106</p><p>Пн–Пт · 10:00–18:00</p><a href="https://3dividruk.com.ua/ua/" target="_blank" rel="noopener">Ми на Prom.ua ↗</a></nav></div><div class="footnote"><span>© ${new Date().getFullYear()} 3DiViDruk. Україна.</span><span>Тестовий сайт · каталог станом на 08.11.2026 · UAH</span></div></div></footer>`;
     DiViCart.updateBadges();
+    const menu=document.querySelector('.menu-toggle'),nav=document.getElementById('primary-nav');
+    function closeMenu(){menu.setAttribute('aria-expanded','false');nav.classList.remove('nav-open');menu.setAttribute('aria-label','Відкрити меню')}
+    menu.addEventListener('click',()=>{const open=menu.getAttribute('aria-expanded')!=='true';menu.setAttribute('aria-expanded',String(open));menu.setAttribute('aria-label',open?'Закрити меню':'Відкрити меню');nav.classList.toggle('nav-open',open)});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu()});
+    document.addEventListener('click',e=>{if(!e.target.closest('.top')&&menu.getAttribute('aria-expanded')==='true')closeMenu()});
+    const current=document.body.dataset.page,cat=new URLSearchParams(location.search).get('category');
+    nav.querySelectorAll('[data-nav]').forEach(a=>{const key=a.dataset.nav;if((key==='home'&&current==='home')||(key==='about'&&location.pathname.endsWith('/about.html'))||(key==='catalog'&&current==='catalog'&&!cat)||(current==='catalog'&&key===cat))a.setAttribute('aria-current','page')});
   }
   function card(p){return `<article class="product-card"><a class="photo" href="${productUrl(p)}"><img src="${esc(url(image(p)))}" alt="${esc(p.title)}" loading="lazy" width="500" height="500">${p.availability==='out_of_stock'?'<span class="tag">ОЧІКУЄМО</span>':''}</a><div class="card-meta"><span>${esc(p.categoryLabel)}</span><span>${esc(p.sku||'Без SKU')}</span></div><h3 class="card-title"><a href="${productUrl(p)}">${esc(p.title)}</a></h3><div class="card-bottom"><span class="price">${DiViCart.money(p.price)}</span><button class="add" data-add="${esc(p.commerceSku)}" ${DiViCart.canBuySku(p)?'':'disabled'} aria-label="Додати ${esc(p.title)} до кошика">+</button></div></article>`}
   function wireAdd(parent=root){parent.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{try{if(DiViCart.addCart(b.dataset.add))toast('Додано до кошика')}catch(e){toast(e.message)}})}
-  function categoryTiles(){return categories.map(c=>`<a class="category-tile" href="${url('catalog.html?category='+c.id)}"><span>${esc(c.label)} <small style="color:var(--muted)">${products.filter(p=>p.category===c.id).length}</small></span><span>↗</span></a>`).join('')}
+  function categoryTiles(){
+    const chosen={lighting:'SKU0001',vases:'SKU0030',planters:'SKU0216',decor:'SKU0041',bags:'SKU MG-0001'};
+    const subtitles={lighting:'Світло й атмосфера',vases:'Декор із формою',planters:'Для ваших рослин',decor:'Акценти для простору',bags:'Форма у русі'};
+    return categories.map(c=>{
+      const p=products.find(x=>x.category===c.id&&x.sku===chosen[c.id])||products.find(x=>x.category===c.id);
+      if(!p)return '';
+      const count=products.filter(x=>x.category===c.id).length;
+      return `<a class="category-tile category-${c.id}" href="${url('catalog.html?category='+c.id)}" aria-label="${esc(c.label)} — ${count} товарів"><img src="${esc(url(image(p)))}" alt="" loading="lazy" width="460" height="560"><span class="category-tile-content"><span class="category-overline">${esc(subtitles[c.id])}</span><strong>${esc(c.label)}</strong><span class="category-quantity">${count} виробів</span></span><span class="category-arrow" aria-hidden="true">↗</span></a>`;
+    }).join('');
+  }
   function home(){
-    const hero=products.find(p=>/Безодня/.test(p.title))||products.find(p=>p.category==='lighting')||products[0];
-    const featured=[];for(const cat of ['lighting','vases','planters','decor','bags']){const p=products.find(p=>p.category===cat&&DiViCart.canBuySku(p));if(p)featured.push(p)}for(const p of products){if(featured.length>=8)break;if(!featured.includes(p)&&DiViCart.canBuySku(p))featured.push(p)}
-    root.innerHTML=`<div class="wrap"><section class="hero"><div class="hero-copy"><span class="eyebrow">Дизайн у новому вимірі</span><h1>Форма.<br>Світло.<br><span style="color:var(--accent)">Характер.</span></h1><p>Лампи, вази та предмети декору, що перетворюють звичайний простір на ваш особистий.</p><a class="btn" href="${url('catalog.html')}">Знайти свій виріб <span>↗</span></a></div><a class="hero-image" href="${productUrl(hero)}"><img src="${esc(url(image(hero)))}" alt="${esc(hero.title)}" fetchpriority="high"><div class="hero-caption"><span>${esc(hero.title.split('. ')[0])}</span><span>Дивитися ↗</span></div></a></section><section><div class="section-head"><div><span class="eyebrow">Колекції 3DiViDruk</span><h2>Оберіть свій настрій</h2></div><a class="text-link" href="${url('catalog.html')}">Увесь каталог ↗</a></div><div class="category-tiles">${categoryTiles()}</div></section><section><div class="section-head"><div><span class="eyebrow">Від світла до деталей</span><h2>Знайомство з колекцією</h2></div><a class="text-link" href="${url('catalog.html')}">${products.length} виробів ↗</a></div><div class="grid">${featured.map(card).join('')}</div></section><section class="story"><div><span class="eyebrow">Нова форма звичних речей</span><h2>Шар за шаром.<br>Від ідеї до вашого дому.</h2></div><div><p>Виразні силуети, рельєфні поверхні й незвичні деталі. Ми створюємо освітлення, декор та аксесуари за допомогою 3D-друку у власній майстерні в Україні.</p><a class="text-link" style="display:inline-block;margin-top:25px" href="${url('about.html')}">Про 3DiViDruk ↗</a></div></section><div class="benefits"><div><strong>01 / Власне виробництво</strong><p>Вироби з 3D-друку, створені в Україні.</p></div><div><strong>02 / Доставка Україною</strong><p>Перевізник та відділення — при оформленні.</p></div><div><strong>03 / Прямий зв’язок</strong><p>Допоможемо уточнити розмір, колір і наявність.</p></div></div></div>`;wireAdd();
+    const select=sku=>products.find(p=>p.sku===sku&&DiViCart.canBuySku(p));
+    const hero=select('SKU0001')||products.find(p=>p.category==='lighting')||products[0];
+    const featured=[];
+    for(const sku of ['SKU0001','SKU0030','SKU0216','SKU0041','SKU MG-0001','SKU0017','SKU0028','SKU0280']){
+      const p=select(sku);if(p&&!featured.includes(p))featured.push(p);
+    }
+    for(const c of ['lighting','vases','planters','decor','bags']){
+      if(!featured.some(p=>p.category===c)){const p=products.find(x=>x.category===c&&DiViCart.canBuySku(x));if(p)featured.push(p)}
+    }
+    const spotlight=select('SKU0017')||products.find(p=>p.category==='lighting'&&p.id!==hero.id)||hero;
+    root.innerHTML=`<div class="wrap homepage">
+      <section class="hero home-hero" aria-labelledby="home-title">
+        <div class="hero-copy">
+          <span class="eyebrow">3DiViDruk / дизайн через 3D-друк</span>
+          <h1 id="home-title">Простір.<br>Форма.<br><span>Характер.</span></h1>
+          <p>Дизайнерські світильники, вази, кашпо й предмети декору, створені за допомогою 3D-друку у власній майстерні в Україні.</p>
+          <div class="home-hero-actions"><a class="btn" href="${url('catalog.html')}">Переглянути вироби <span aria-hidden="true">↗</span></a><a class="home-inline-link" href="${url('about.html')}">Про майстерню</a></div>
+          <div class="home-hero-facts"><span>${products.length} виробів у каталозі</span><span>${categories.length} напрямів дизайну</span></div>
+        </div>
+        <a class="hero-image" href="${productUrl(hero)}" aria-label="Переглянути виріб: ${esc(hero.title)}"><img src="${esc(url(image(hero)))}" alt="${esc(hero.title)}" fetchpriority="high" width="760" height="780"><span class="hero-caption"><span>У фокусі · ${esc(hero.title.split('.')[0])}</span><span>Детальніше ↗</span></span></a>
+      </section>
+      <section class="home-categories" aria-labelledby="home-categories-title">
+        <div class="section-head"><div><span class="eyebrow">Каталог 3DiViDruk</span><h2 id="home-categories-title">Знайдіть свій стиль</h2></div><a class="text-link" href="${url('catalog.html')}">Усі категорії ↗</a></div>
+        <div class="category-tiles">${categoryTiles()}</div>
+      </section>
+      <section class="home-picks" aria-labelledby="home-picks-title">
+        <div class="section-head"><div><span class="eyebrow">Вибір із колекцій</span><h2 id="home-picks-title">Речі, які привертають увагу</h2><p class="section-intro">Від скульптурного світла до невеликих деталей для дому.</p></div><a class="text-link" href="${url('catalog.html')}">Переглянути всі ${products.length} ↗</a></div>
+        <div class="grid">${featured.map(card).join('')}</div>
+      </section>
+      <section class="home-feature" aria-labelledby="home-feature-title">
+        <a class="home-feature-image" href="${productUrl(spotlight)}"><img src="${esc(url(image(spotlight)))}" loading="lazy" alt="${esc(spotlight.title)}" width="680" height="590"></a>
+        <div class="home-feature-copy"><span class="eyebrow">Освітлення / 3D-дизайн</span><h2 id="home-feature-title">Світло теж має форму.</h2><p>Фактура, силует і гра світла змінюють відчуття простору. Знайдіть світильник, який пасуватиме саме вам.</p><a class="btn light" href="${url('catalog.html?category=lighting')}">Обрати світильник ↗</a></div>
+      </section>
+      <section class="story"><div><span class="eyebrow">Майстерня у Дніпрі</span><h2>Ідеї набувають форми. Шар за шаром.</h2></div><div><p>Ми створюємо предмети для дому й аксесуари методом 3D-друку. Нам подобаються виразні поверхні, незвичні силуети та речі з характером.</p><a class="text-link" style="display:inline-block;margin-top:25px" href="${url('about.html')}">Знайомство з 3DiViDruk ↗</a></div></section>
+      <div class="benefits"><div><strong>Власне виробництво</strong><p>Майстерня 3D-друку в Дніпрі.</p></div><div><strong>Вибір для інтер'єру</strong><p>Освітлення, вази, кашпо, декор і аксесуари.</p></div><div><strong>Питання щодо виробу?</strong><p><a href="tel:+380972920104">Зателефонувати нам ↗</a></p></div></div>
+    </div>`;
+    wireAdd();
   }
   function catalog(){
     const params=new URLSearchParams(location.search),query=params.get('q')||'',cat=params.get('category')||'';
