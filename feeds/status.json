@@ -2,5 +2,6 @@
   "mode": "draft",
   "readyForSubmission": false,
   "reason": "Preview noindex, offline catalog snapshot, no production backend/acquiring or domain cutover. Do not submit to Merchant/Meta.",
-  "products": 183
+  "products": 178,
+  "pausedProducts": 5
 }
