@@ -6,7 +6,7 @@ const DiViStore = (() => {
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const cfg=()=>window.DIVIDRUK_COMMERCE_CONFIG||{};
   const backend=()=>cfg().checkoutMode==='backend';
-  let products=[],categories=[],limit=24;
+  let products=[],categories=[],limit=24,homepageConfig=null;
   const image=p=>p.images?.[0]||p.image||'';
   const productUrl=p=>url('products/'+p.id+'/');
   function merchandisingOrder(items,draftOrders={}){
@@ -42,10 +42,10 @@ const DiViStore = (() => {
   function card(p){return `<article class="product-card"><a class="photo" href="${productUrl(p)}"><img src="${esc(url(image(p)))}" alt="${esc(p.title)}" loading="lazy" width="500" height="500">${p.availability==='out_of_stock'?'<span class="tag">ОЧІКУЄМО</span>':''}</a><div class="card-meta"><span>${esc(p.subcategoryLabel||p.categoryLabel)}</span><span>${esc(p.sku||'Без SKU')}</span></div><h3 class="card-title"><a href="${productUrl(p)}">${esc(p.title)}</a></h3><div class="card-bottom"><span class="price">${DiViCart.money(p.price)}</span><button class="add" data-add="${esc(p.commerceSku)}" ${DiViCart.canBuySku(p)?'':'disabled'} aria-label="Додати ${esc(p.title)} до кошика">+</button></div></article>`}
   function wireAdd(parent=root){parent.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{try{if(DiViCart.addCart(b.dataset.add))toast('Додано до кошика')}catch(e){toast(e.message)}})}
   function categoryTiles(){
-    const chosen={lighting:'SKU0001',vases:'SKU0030',planters:'SKU0216',decor:'SKU0041'};
+    const chosen=homepageConfig?.categories?.covers||{lighting:'SKU0001',vases:'SKU0030',planters:'SKU0216',decor:'SKU0041'};
     const subtitles={lighting:'Світло й атмосфера',vases:'Декор із формою',planters:'Для ваших рослин',decor:'Акценти для простору'};
     return categories.map(c=>{
-      const p=products.find(x=>x.category===c.id&&x.sku===chosen[c.id])||products.find(x=>x.category===c.id);
+      const p=products.find(x=>x.category===c.id&&(x.sku===chosen[c.id]||x.commerceSku===chosen[c.id]))||products.find(x=>x.category===c.id);
       if(!p)return '';
       const count=products.filter(x=>x.category===c.id).length;
       return `<a class="category-tile category-${c.id}" href="${url('catalog.html?category='+c.id)}" aria-label="${esc(c.label)} — ${count} товарів"><img src="${esc(url(image(p)))}" alt="" loading="lazy" width="460" height="560"><span class="category-tile-content"><span class="category-overline">${esc(subtitles[c.id])}</span><strong>${esc(c.label)}</strong><span class="category-quantity">${count} виробів</span></span><span class="category-arrow" aria-hidden="true">↗</span></a>`;
@@ -61,43 +61,51 @@ const DiViStore = (() => {
     }).join('');
   }
   function home(){
-    const select=sku=>products.find(p=>p.sku===sku&&DiViCart.canBuySku(p));
-    const hero=select('SKU0001')||products.find(p=>p.category==='lighting'&&DiViCart.canBuySku(p))||products[0];
+    const h=homepageConfig||{},heroCfg=h.hero||{},catCfg=h.categories||{},featCfg=h.featured||{},spotCfg=h.feature||{},storyCfg=h.story||{};
+    const val=(v,fallback)=>esc(typeof v==='string'?v:fallback);
+    const select=sku=>products.find(p=>(p.sku===sku||p.commerceSku===sku)&&DiViCart.canBuySku(p));
+    const hero=select(heroCfg.sku||'SKU0001')||products.find(p=>p.category==='lighting'&&DiViCart.canBuySku(p))||products[0];
     const heroName=hero.sku==='SKU0001'?'Лампа «Безодня»':hero.title.split('.')[0];
     const featured=[];
-    for(const sku of ['SKU0001','SKU0030','SKU0216','SKU0041','SKU0017','SKU0028','SKU0280']){
+    for(const sku of (Array.isArray(featCfg.skus)?featCfg.skus:['SKU0001','SKU0030','SKU0216','SKU0041','SKU0017','SKU0028','SKU0280'])){
       const p=select(sku);if(p&&!featured.includes(p))featured.push(p);
     }
     for(const c of ['lighting','vases','planters','decor']){
       if(!featured.some(p=>p.category===c)){const p=products.find(x=>x.category===c&&DiViCart.canBuySku(x));if(p)featured.push(p)}
     }
-    const spotlight=select('SKU0017')||products.find(p=>p.category==='lighting'&&p.id!==hero.id)||hero;
+    const spotlight=select(spotCfg.sku||'SKU0017')||products.find(p=>p.category==='lighting'&&p.id!==hero.id)||hero;
     root.innerHTML=`<div class="wrap homepage">
       <section class="hero home-hero" aria-labelledby="home-title">
         <div class="hero-copy">
-          <span class="eyebrow">3DiViDruk / дизайн через 3D-друк</span>
-          <h1 id="home-title">Простір.<br>Форма.<br><span>Характер.</span></h1>
-          <p>Дизайнерські світильники, вази, кашпо й предмети декору, створені за допомогою 3D-друку у власній майстерні в Україні.</p>
+          <span class="eyebrow">${val(heroCfg.eyebrow,'3DiViDruk / дизайн через 3D-друк')}</span>
+          <h1 id="home-title">${(Array.isArray(heroCfg.titleLines)&&heroCfg.titleLines.length===3?heroCfg.titleLines:['Простір.','Форма.','Характер.']).map((line,i)=>i===2?'<span>'+esc(line)+'</span>':esc(line)).join('<br>')}</h1>
+          <p>${val(heroCfg.description,'Дизайнерські світильники, вази, кашпо й предмети декору, створені за допомогою 3D-друку у власній майстерні в Україні.')}</p>
           <div class="home-hero-actions"><a class="btn" href="${url('catalog.html')}">Переглянути вироби <span aria-hidden="true">↗</span></a><a class="home-inline-link" href="${url('about.html')}">Про майстерню</a></div>
           <div class="home-hero-facts"><span>Власна майстерня у Дніпрі</span><span>${categories.length} колекцій</span></div>
         </div>
         <a class="hero-image" href="${productUrl(hero)}" aria-label="Переглянути виріб: ${esc(hero.title)}"><img src="${esc(url(image(hero)))}" alt="${esc(hero.title)}" fetchpriority="high" width="760" height="780"><span class="hero-caption"><span>У фокусі · ${esc(heroName)}</span><span>Детальніше ↗</span></span></a>
       </section>
       <section class="home-categories" aria-labelledby="home-categories-title">
-        <div class="section-head"><div><span class="eyebrow">Каталог 3DiViDruk</span><h2 id="home-categories-title">Знайдіть свій стиль</h2></div><a class="text-link" href="${url('catalog.html')}">Усі категорії ↗</a></div>
+        <div class="section-head"><div><span class="eyebrow">${val(catCfg.eyebrow,'Каталог 3DiViDruk')}</span><h2 id="home-categories-title">${val(catCfg.title,'Знайдіть свій стиль')}</h2></div><a class="text-link" href="${url('catalog.html')}">Усі категорії ↗</a></div>
         <div class="category-tiles">${categoryTiles()}</div><div class="home-category-shortcuts" aria-label="Підрозділи каталогу">${categoryShortcuts()}</div>
       </section>
       <section class="home-picks" aria-labelledby="home-picks-title">
-        <div class="section-head"><div><span class="eyebrow">Вибір із колекцій</span><h2 id="home-picks-title">Речі, які привертають увагу</h2><p class="section-intro">Від скульптурного світла до невеликих деталей для дому.</p></div><a class="text-link" href="${url('catalog.html')}">Переглянути всі ${products.length} ↗</a></div>
+        <div class="section-head"><div><span class="eyebrow">${val(featCfg.eyebrow,'Вибір із колекцій')}</span><h2 id="home-picks-title">${val(featCfg.title,'Речі, які привертають увагу')}</h2><p class="section-intro">${val(featCfg.description,'Від скульптурного світла до невеликих деталей для дому.')}</p></div><a class="text-link" href="${url('catalog.html')}">Переглянути всі ${products.length} ↗</a></div>
         <div class="grid">${featured.map(card).join('')}</div>
       </section>
       <section class="home-feature" aria-labelledby="home-feature-title">
         <a class="home-feature-image" href="${productUrl(spotlight)}"><img src="${esc(url(image(spotlight)))}" loading="lazy" alt="${esc(spotlight.title)}" width="680" height="590"></a>
-        <div class="home-feature-copy"><span class="eyebrow">Освітлення / 3D-дизайн</span><h2 id="home-feature-title">Світло теж має форму.</h2><p>Фактура, силует і гра світла змінюють відчуття простору. Знайдіть світильник, який пасуватиме саме вам.</p><a class="btn light" href="${url('catalog.html?category=lighting')}">Обрати світильник ↗</a></div>
+        <div class="home-feature-copy"><span class="eyebrow">${val(spotCfg.eyebrow,'Освітлення / 3D-дизайн')}</span><h2 id="home-feature-title">${val(spotCfg.title,'Світло теж має форму.')}</h2><p>${val(spotCfg.description,'Фактура, силует і гра світла змінюють відчуття простору. Знайдіть світильник, який пасуватиме саме вам.')}</p><a class="btn light" href="${url('catalog.html?category=lighting')}">Обрати світильник ↗</a></div>
       </section>
-      <section class="story"><div><span class="eyebrow">Майстерня у Дніпрі</span><h2>Ідеї набувають форми. Шар за шаром.</h2></div><div><p>Ми створюємо предмети для дому й аксесуари методом 3D-друку. Нам подобаються виразні поверхні, незвичні силуети та речі з характером.</p><a class="text-link" style="display:inline-block;margin-top:25px" href="${url('about.html')}">Знайомство з 3DiViDruk ↗</a></div></section>
+      <section class="story"><div><span class="eyebrow">${val(storyCfg.eyebrow,'Майстерня у Дніпрі')}</span><h2>${val(storyCfg.title,'Ідеї набувають форми. Шар за шаром.')}</h2></div><div><p>${val(storyCfg.description,'Ми створюємо предмети для дому й аксесуари методом 3D-друку. Нам подобаються виразні поверхні, незвичні силуети та речі з характером.')}</p><a class="text-link" style="display:inline-block;margin-top:25px" href="${url('about.html')}">Знайомство з 3DiViDruk ↗</a></div></section>
       <div class="benefits"><div><strong>Власне виробництво</strong><p>Майстерня 3D-друку в Дніпрі.</p></div><div><strong>Вибір для інтер'єру</strong><p>Освітлення, вази, кашпо, декор і аксесуари.</p></div><div><strong>Питання щодо виробу?</strong><p><a href="tel:+380972920104">Зателефонувати нам ↗</a></p></div></div>
     </div>`;
+    const names=['categories','featured','feature','story','benefits'];
+    const sectionNodes=Object.fromEntries(names.map(id=>[id,root.querySelector(({categories:'.home-categories',featured:'.home-picks',feature:'.home-feature',story:'.story',benefits:'.benefits'})[id])]));
+    const requested=Array.isArray(h.sections)?h.sections:names;
+    const priority=[...new Set(requested.filter(id=>names.includes(id))),...names];
+    const wrapper=root.querySelector('.homepage');
+    priority.forEach(id=>{if(sectionNodes[id])wrapper.appendChild(sectionNodes[id])});
     wireAdd();
   }
   function catalog(){
@@ -209,7 +217,15 @@ const DiViStore = (() => {
         }
       }catch(e){console.warn('Editor preview unavailable:',e)}
     }
-    products=merchandisingOrder(loaded,draftOrders);categories=(Array.isArray(data.taxonomy)?data.taxonomy:[{id:'lighting',label:'Освітлення',subcategories:[]},{id:'vases',label:'Вази',subcategories:[]},{id:'planters',label:'Кашпо',subcategories:[]},{id:'decor',label:'Декор',subcategories:[]}]).filter(c=>!c.paused&&products.some(p=>p.category===c.id));DiViCart.bindCatalog(products);if(!products.length)throw new Error('Каталог готується');await ({home,catalog,product,cart,checkout,order}[page]||home)()}catch(e){root.innerHTML=`<div class="wrap empty"><h1>Завантаження не вдалося</h1><p>${esc(e.message)}</p><a class="btn" style="margin-top:20px" href="https://3dividruk.com.ua/ua/">Відкрити магазин на Prom.ua ↗</a></div>`}}
+    products=merchandisingOrder(loaded,draftOrders);
+    if(page==='home'){
+      try{const res=await fetch(backend()?'/api/v1/homepage':url('data/homepage.json'));
+        if(res.ok)homepageConfig=await res.json();
+        if(editorPreview){const draft=JSON.parse(localStorage.getItem('3dividruk_admin_draft_v1')||'null');
+          if(draft?.version===1&&draft.homepage&&typeof draft.homepage==='object')homepageConfig=draft.homepage}
+      }catch(e){console.warn('Homepage settings unavailable; using defaults',e)}
+    }
+    categories=(Array.isArray(data.taxonomy)?data.taxonomy:[{id:'lighting',label:'Освітлення',subcategories:[]},{id:'vases',label:'Вази',subcategories:[]},{id:'planters',label:'Кашпо',subcategories:[]},{id:'decor',label:'Декор',subcategories:[]}]).filter(c=>!c.paused&&products.some(p=>p.category===c.id));DiViCart.bindCatalog(products);if(!products.length)throw new Error('Каталог готується');await ({home,catalog,product,cart,checkout,order}[page]||home)()}catch(e){root.innerHTML=`<div class="wrap empty"><h1>Завантаження не вдалося</h1><p>${esc(e.message)}</p><a class="btn" style="margin-top:20px" href="https://3dividruk.com.ua/ua/">Відкрити магазин на Prom.ua ↗</a></div>`}}
   return {init};
 })();
 DiViStore.init();
