@@ -1,0 +1,45 @@
+<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow">
+<title>Головна сторінка · 3DiViDruk Admin</title>
+<link rel="stylesheet" href="admin-shell.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="workbench.css"><link rel="stylesheet" href="homepage.css"></head><body>
+<button id="menu" class="dividruk-menu-toggle" aria-label="Відкрити меню">☰</button><div id="overlay" class="dividruk-menu-overlay"></div>
+<aside class="dividruk-admin-sidebar"><div class="dividruk-shell-brand"><b>3DiVi<span>Druk</span></b><small>ADMIN</small></div><nav>
+<section><h4>Магазин</h4>
+<a href="dashboard.html"><span>Огляд магазину</span></a><a class="active" aria-current="page" href="homepage.html"><span>Головна / Вітрина</span></a>
+<a href="workbench.html"><span>Картки та порядок</span></a><a href="media.html"><span>Медіатека / Фото</span></a>
+<a href="index.html#catalog"><span>Каталог і ціни</span></a><a href="index.html#orders"><span>Замовлення</span></a>
+</section><section><h4>Перегляд</h4><a href="../index.html"><span>Відкрити магазин ↗</span></a></section></nav>
+<div class="dividruk-shell-foot"><span class="dividruk-shell-badge">3DiViDruk · тестова версія</span></div></aside>
+<header><div><small>3DiViDruk / Вміст сайту</small><h1>Головна сторінка</h1></div><a class="studio-nav-link" href="dashboard.html">Огляд →</a></header>
+<main class="studio-main home-admin">
+<p id="state" class="notice" role="status">Завантаження налаштувань…</p>
+<section class="card home-admin-top"><div><h2>Змінюйте головну без програмування</h2><p>Тексти, головне фото, добірка виробів та порядок блоків. На GitHub Pages зміни спочатку зберігаються лише у вашому браузері.</p></div>
+<div class="studio-actions"><button id="save" type="button">Зберегти чернетку</button><a id="preview" class="studio-nav-link" href="../index.html?editorPreview=1" target="_blank" rel="noopener">Переглянути зміни ↗</a><button id="export" type="button" class="secondary">Експорт JSON</button></div></section>
+<form id="auth" class="card" hidden><h2>Доступ адміністратора</h2><label>Секретний токен<input type="password" name="token" minlength="24" required autocomplete="off"></label><button>Увійти</button></form>
+<form id="home-form">
+<section class="card"><div class="home-section-header"><span class="home-section-no">01</span><div><h2>Перший екран / Hero</h2><p>Це головна фотографія й перший текст, який бачить покупець.</p></div></div>
+<div class="home-form-grid"><label>Короткий напис над заголовком<input data-field="hero.eyebrow" maxlength="180"></label><label>Головний виріб<select data-field="hero.sku" id="hero-product"></select></label>
+<label>Заголовок — рядок 1<input data-field="hero.titleLines.0" maxlength="75" required></label><label>Заголовок — рядок 2<input data-field="hero.titleLines.1" maxlength="75" required></label><label>Заголовок — рядок 3 (акцент)<input data-field="hero.titleLines.2" maxlength="75" required></label>
+<label class="home-wide">Текст під заголовком<textarea data-field="hero.description" rows="3" maxlength="650"></textarea></label></div>
+<div class="home-image-preview"><img id="hero-photo" alt="" width="180" height="180"><p>Головне фото береться з обраного товару. Щоб вибрати інший ракурс, скористайтеся <a href="media.html">медіатекою</a>.</p></div>
+</section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">02</span><div><h2>Категорії</h2><p>Зображення та заголовки колекцій на головній сторінці.</p></div></div>
+<div class="home-form-grid"><label>Підпис<input data-field="categories.eyebrow" maxlength="150"></label><label>Заголовок<input data-field="categories.title" maxlength="200"></label></div>
+<div id="category-covers" class="home-category-covers"></div>
+</section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">03</span><div><h2>Добірка виробів</h2><p>Товари на головній можна пересувати вгору/вниз, видаляти з добірки та додавати нові.</p></div></div>
+<div class="home-form-grid"><label>Підпис<input data-field="featured.eyebrow" maxlength="150"></label><label>Заголовок<input data-field="featured.title" maxlength="200"></label>
+<label class="home-wide">Пояснення<textarea data-field="featured.description" rows="2" maxlength="500"></textarea></label></div>
+<div id="featured-list" class="home-featured-list"></div><div class="home-add-row"><label>Додати товар<select id="featured-add"></select></label><button id="featured-add-button" type="button" class="secondary">Додати до добірки</button></div>
+</section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">04</span><div><h2>Акцентний блок</h2><p>Велике фото виробу та супровідний текст.</p></div></div>
+<div class="home-form-grid"><label>Обраний виріб<select data-field="feature.sku" id="feature-product"></select></label><label>Підпис<input data-field="feature.eyebrow" maxlength="150"></label>
+<label>Заголовок<input data-field="feature.title" maxlength="200"></label><label class="home-wide">Пояснення<textarea data-field="feature.description" rows="3" maxlength="650"></textarea></label></div>
+</section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">05</span><div><h2>Про майстерню</h2><p>Текстова історія бренду на головній.</p></div></div>
+<div class="home-form-grid"><label>Підпис<input data-field="story.eyebrow" maxlength="150"></label><label>Заголовок<input data-field="story.title" maxlength="200"></label><label class="home-wide">Текст<textarea data-field="story.description" rows="4" maxlength="1000"></textarea></label></div>
+</section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">06</span><div><h2>Порядок блоків</h2><p>Перший екран завжди зверху. Інші блоки переставляйте кнопками ↑ / ↓.</p></div></div><div id="sections-list" class="home-sections-list"></div>
+</section>
+</form>
+<div class="studio-actions home-bottom-actions"><button type="button" id="save-bottom">Зберегти чернетку</button><button id="reset" type="button" class="secondary">Повернути базові налаштування</button><a class="studio-nav-link" href="media.html">До медіатеки →</a></div>
+</main><script src="../config/runtime.js"></script><script src="homepage.js"></script></body></html>
