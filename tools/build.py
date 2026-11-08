@@ -12,7 +12,9 @@ from xml.sax.saxutils import escape as xml
 
 ROOT=Path(__file__).resolve().parents[1]
 SITE='https://ladima75-source.github.io/3dividruk/'
-LABELS={'lighting':'Освітлення','vases':'Вази','planters':'Кашпо','decor':'Декор','bags':'Сумки MaGelle'}
+TAXONOMY=json.loads((ROOT/'data/taxonomy.json').read_text(encoding='utf-8'))['categories']
+LABELS={category['id']:category['label'] for category in TAXONOMY}
+SUBLABELS={(category['id'], sub['id']): sub['label'] for category in TAXONOMY for sub in category.get('subcategories', [])}
 
 def category(title):
     title=title.lower()
@@ -21,6 +23,21 @@ def category(title):
     if 'ваза' in title or 'вази' in title:return 'vases'
     if 'горщик' in title or 'кашпо' in title:return 'planters'
     return 'decor'
+
+def subcategory(category_id, title):
+    """Classify by the product's actual type, not by arbitrary wording in its description."""
+    name=title.casefold().strip()
+    if category_id == 'lighting':
+        if name.startswith('настільна'): return 'table-lamps'
+        if name.startswith('підвісна'): return 'pendant-lamps'
+    if category_id == 'decor':
+        if name.startswith(('чаша', 'тарілка', 'органайзер')): return 'bowls-organizers'
+        if name.startswith('фігурка'): return 'figurines'
+        if name.startswith('підставка для благовоній'): return 'incense-holders'
+        if name.startswith('настінна фігура'): return 'wall-art'
+    if category_id in ('lighting', 'decor'):
+        raise ValueError(f'Product needs manual subcategory review: {title}')
+    return None
 
 def shell(title,page,body='',depth=0,product=None,route_name=None,hidden=False):
     prefix='../'*depth or './'
@@ -61,6 +78,8 @@ def build():
         p['title']=p.get('title') or p.get('name','')
         p['category']=category(p['title'])
         p['categoryLabel']=LABELS[p['category']]
+        p['subcategory']=subcategory(p['category'],p['title'])
+        p['subcategoryLabel']=SUBLABELS.get((p['category'],p['subcategory']),'')
         p['storefront_visible']=p['category'] not in paused_categories and p['id'] not in paused_product_ids
         p['images']=[i if isinstance(i,str) else i.get('local') or i.get('url') for i in (p.get('images') or p.get('localImages') or p.get('imageUrls') or [])]
         p['images']=[i for i in p['images'] if i and (i.startswith('assets/') or urlparse(i).scheme=='https')]
@@ -69,7 +88,7 @@ def build():
         p['commerceSku']=p.get('commerceSku') or p['sku'] or ('PROM-'+p['id'])
         p['description']=p.get('description') or p.get('descriptionText') or ''
     visible_products=[p for p in products if p['storefront_visible']]
-    normalized={'store':'3DiViDruk','source':'https://3dividruk.com.ua/ua/','importedAt':'2026-11-08','products':products}
+    normalized={'store':'3DiViDruk','source':'https://3dividruk.com.ua/ua/','importedAt':raw.get('importedAt','2026-11-08') if isinstance(raw,dict) else '2026-11-08','taxonomy':TAXONOMY,'products':products}
     (ROOT/'data/catalog.json').write_text(json.dumps(normalized,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
     for name,title in {'index':'Дизайн у новому вимірі','catalog':'Колекція','cart':'Кошик','checkout':'Тестове оформлення','product':'Виріб','order':'Тестове замовлення'}.items():
         (ROOT/(name+'.html')).write_text(shell(title,'home' if name=='index' else name),encoding='utf-8')
