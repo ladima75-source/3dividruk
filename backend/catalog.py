@@ -101,3 +101,34 @@ def update_product(sku, data):
         con.execute('INSERT INTO product_overrides(sku,data_json,updated_at) VALUES(?,?,?) ON CONFLICT(sku) DO UPDATE SET data_json=excluded.data_json,updated_at=excluded.updated_at',
                     (sku, json.dumps(merged, ensure_ascii=False), now()))
     return next(p for p in products() if str(p.get('commerceSku') or p.get('sku')) == sku)
+
+
+def reorder_products(category, subcategory, sku_order):
+    """Atomically replace display order for exactly one catalogue subgroup."""
+    if not isinstance(category, str) or len(category) > 50:
+        raise ValueError('INVALID_CATEGORY')
+    if subcategory is not None and (not isinstance(subcategory, str) or len(subcategory) > 80):
+        raise ValueError('INVALID_SUBCATEGORY')
+    if not isinstance(sku_order, list) or not 1 <= len(sku_order) <= 500:
+        raise ValueError('INVALID_ORDER')
+    if any(not isinstance(sku, str) or not sku or len(sku) > 150 for sku in sku_order):
+        raise ValueError('INVALID_SKU')
+    if len(sku_order) != len(set(sku_order)):
+        raise ValueError('DUPLICATE_SKU')
+    from .orders import now
+    with connect() as con:
+        scoped = [p for p in products(con) if p.get('category') == category
+                  and (subcategory is None or p.get('subcategory') == subcategory)]
+        identities = {str(p.get('commerceSku') or p.get('sku')) for p in scoped}
+        if identities != set(sku_order):
+            raise ValueError('ORDER_SCOPE_MISMATCH')
+        for position, sku in enumerate(sku_order):
+            prev = con.execute('SELECT data_json FROM product_overrides WHERE sku=?', (sku,)).fetchone()
+            current = json.loads(prev[0]) if prev else {}
+            current['sort_order'] = position
+            con.execute(
+                'INSERT INTO product_overrides(sku,data_json,updated_at) VALUES(?,?,?) '
+                'ON CONFLICT(sku) DO UPDATE SET data_json=excluded.data_json,updated_at=excluded.updated_at',
+                (sku, json.dumps(current, ensure_ascii=False), now()))
+    return {'ok': True, 'category': category, 'subcategory': subcategory,
+            'count': len(sku_order)}
