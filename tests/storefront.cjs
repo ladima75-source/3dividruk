@@ -15,6 +15,8 @@ assert.equal(cart.addCart('OLD'),false);
 assert.equal(cart.addCart('SKU0002'),false);
 assert.equal(cart.addCart('SKU0003'),false);
 assert.equal(cart.addCart('SKU0001',-1),false);
+cart.bindCatalog([{sku:'HIDDEN',price:200,availability:'in_stock',storefront_visible:false},{sku:'SKU0001',price:700,availability:'in_stock'}]);
+assert.equal(cart.addCart('HIDDEN'),false,'Paused products must not enter cart');
 assert.equal(cart.addCart('SKU0001',1.5),false);
 assert.equal(cart.addCart('SKU0001',2),true);
 assert.equal(cart.rows()[0].qty,2);
