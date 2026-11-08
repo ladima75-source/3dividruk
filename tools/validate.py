@@ -84,6 +84,19 @@ for feed in ('google-merchant-draft.csv','meta-catalog-draft.csv'):
     with (ROOT/'feeds'/feed).open(encoding='utf-8-sig',newline='') as f:
         submitted={row['id'] for row in csv.DictReader(f) if row.get('id')}
         check(not hidden_skus.intersection(submitted),'Paused SKU in feed '+feed)
+# Editorial controls may only promote visible products and known sections.
+homepage=json.loads((ROOT/'data/homepage.json').read_text(encoding='utf-8'))
+active_skus={p.get('commerceSku') or p.get('sku') for p in products if p.get('storefront_visible') is not False}
+chosen=[homepage['hero']['sku'],homepage['feature']['sku']]+homepage['featured']['skus']+list(homepage['categories']['covers'].values())
+check(all(sku in active_skus for sku in chosen),'Hidden or missing homepage SKU')
+check(len(homepage['hero']['titleLines'])==3,'Hero headline must have three lines')
+sections=['categories','featured','feature','story','benefits']
+check(set(homepage['sections'])==set(sections) and len(homepage['sections'])==len(sections),'Homepage section list invalid')
+check(len(homepage['featured']['skus'])==len(set(homepage['featured']['skus'])),'Duplicate homepage featured SKU')
+for page in ('dashboard','homepage','media','workbench'):
+    check((ROOT/'admin'/(page+'.html')).is_file(),'Missing admin page '+page)
+for file in ('admin/homepage.js','admin/media.js','tools/apply_editor_draft.py'):
+    check((ROOT/file).is_file(),'Missing editor implementation '+file)
 for folder in ('js','config','css','admin'):
     for file in (ROOT/folder).rglob('*'):
         if not file.is_file() or file.suffix not in ('.js','.css','.html','.json'):continue
