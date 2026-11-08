@@ -129,7 +129,7 @@ class Handler(BaseHTTPRequestHandler):
             if path == '/api/v1/health':
                 return self.reply({'store':'3dividruk','status':'ok','test_mode':settings()['test_mode'],'online_payment_enabled':False})
             if path == '/api/v1/catalog':
-                return self.reply({'products':products(),'currency':'UAH'})
+                return self.reply({'products':products(),'taxonomy':json.loads((ROOT/'data/taxonomy.json').read_text(encoding='utf-8'))['categories'],'currency':'UAH'})
             if path == '/api/v1/payments/methods':
                 state = settings()
                 return self.reply({'methods':[{'id':'cod','method':'cod','label':'Післяплата','enabled':True}],
