@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Огляд магазину · 3DiViDruk Admin</title>
+<link rel="stylesheet" href="admin-shell.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="dashboard.css"></head>
+<body>
+<button id="menu" class="dividruk-menu-toggle" aria-label="Відкрити меню">☰</button><div id="overlay" class="dividruk-menu-overlay"></div>
+<aside class="dividruk-admin-sidebar"><div class="dividruk-shell-brand"><b>3DiVi<span>Druk</span></b><small>ADMIN</small></div>
+<nav><section><h4>Керування магазином</h4>
+<a class="active" aria-current="page" href="dashboard.html"><span>Огляд магазину</span></a>
+<a href="workbench.html"><span>Візуальний редактор</span></a>
+<a href="index.html#catalog"><span>Каталог і ціни</span></a>
+<a href="index.html#orders"><span>Замовлення</span></a>
+<a href="index.html#settings"><span>Оплата та доставка</span></a>
+</section><section><h4>Перегляд</h4><a href="../index.html"><span>Відкрити вітрину ↗</span></a></section></nav>
+<div class="dividruk-shell-foot"><span class="dividruk-shell-badge">Окрема адмінка 3DiViDruk</span></div></aside>
+<header><div><small>3DiViDruk / Адміністрування</small><h1>Огляд магазину</h1></div><a href="../index.html" class="dashboard-outline">Відкрити сайт ↗</a></header>
+<main class="dashboard-main">
+<div class="dashboard-intro"><div><h2>Управління магазином</h2><p>Каталог, вітрина та підготовка до запуску на власному домені.</p></div>
+<a class="dashboard-primary" href="workbench.html">Керувати вітриною ↗</a></div>
+<p id="status" class="notice">Завантажуємо дані каталогу…</p>
+<section class="dashboard-kpis" aria-label="Показники каталогу">
+<div><small>Всього товарів</small><strong id="k-total">—</strong><span>У базі 3DiViDruk</span></div>
+<div><small>На вітрині</small><strong id="k-live">—</strong><span>Доступні для перегляду</span></div>
+<div><small>На паузі</small><strong id="k-paused">—</strong><span>Не показуються покупцям</span></div>
+<div><small>Категорій / підкатегорій</small><strong id="k-groups">—</strong><span>Структура каталогу</span></div>
+</section>
+<div class="dashboard-columns">
+<section class="card"><div class="dashboard-panel-head"><h2>Потребує уваги</h2></div>
+<div id="alerts" class="dashboard-alerts"></div></section>
+<section class="card"><div class="dashboard-panel-head"><h2>Каталог за категоріями</h2><a href="index.html#catalog">Переглянути каталог →</a></div>
+<div id="categories" class="dashboard-categories"></div></section>
+</div>
+<section class="card"><div class="dashboard-panel-head"><h2>Швидкі дії</h2></div>
+<div class="dashboard-quick">
+<a href="workbench.html"><strong>Візуальний редактор</strong><span>Міняти порядок карток, тексти й ціни</span></a>
+<a href="index.html#catalog"><strong>Каталог і ціни</strong><span>Усі товари, включно з прихованими</span></a>
+<a href="index.html#orders"><strong>Замовлення</strong><span>Тестова система замовлень</span></a>
+<a href="index.html#settings"><strong>Оплата і доставка</strong><span>Поки без реальних інтеграцій</span></a>
+</div></section>
+<section class="card"><div class="dashboard-panel-head"><h2>Стан запуску</h2></div>
+<div class="dashboard-checks"><div><span>Каталог та фотографії</span><b>Тестовий імпорт</b></div><div><span>Домен 3dividruk.com.ua</span><b>Залишається на Prom.ua</b></div><div><span>Онлайн-оплата</span><b>Не підключена</b></div><div><span>Нова пошта API</span><b>Не підключена</b></div><div><span>Індексація тестового сайту</span><b>Вимкнена</b></div></div>
+</section>
+</main><script src="../config/runtime.js"></script><script src="dashboard.js"></script>
+</body></html>
