@@ -9,7 +9,7 @@
  function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
  const statusName=v=>({new:'Новий',confirmed:'Підтверджено',preparing:'Комплектується',shipped:'Відправлено',completed:'Виконано',cancelled:'Скасовано'}[v]||v);
  const transitions={new:['confirmed','cancelled'],confirmed:['new','preparing','cancelled'],preparing:['confirmed','shipped','cancelled'],shipped:['preparing','completed'],completed:[],cancelled:[]};
- const stockName=p=>({in_stock:'В наявності',out_of_stock:'Немає в наявності',preorder:'Під замовлення'}[p.availability]||p.availability||'Уточнюється');
+ const stockName=p=>p.storefront_visible===false?'На паузі · приховано':({in_stock:'В наявності',out_of_stock:'Немає в наявності',preorder:'Під замовлення'}[p.availability]||p.availability||'Уточнюється');
  async function req(path,opt={}){
    const c=new AbortController(),t=setTimeout(()=>c.abort(),12000);
    try{
