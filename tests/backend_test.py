@@ -14,6 +14,7 @@ from backend.db import migrate, connect, database_path
 from backend import orders
 from backend.catalog import update_product, reorder_products, products
 from backend.homepage import homepage, validate_homepage, update_homepage
+from backend.storefronts import storefront_registry, storefront_homepages, validate_storefront_homepage, update_storefront_homepage
 from backend.server import make_server, RATE
 
 class CommerceTests(unittest.TestCase):
@@ -154,6 +155,34 @@ class CommerceTests(unittest.TestCase):
             update_product('SKU0001',{'images':['https://attacker.invalid/f.jpg','assets/products/p1/a.jpg']})
         with self.assertRaisesRegex(ValueError,'INVALID_IMAGE_ORDER'):
             update_product('SKU0001',{'images':['assets/products/p1/a.jpg','assets/products/p1/a.jpg']})
+
+    def test_three_storefronts_use_one_catalog_and_separate_homepages(self):
+        root=Path(__file__).resolve().parents[1]
+        master=json.loads((root/'data/catalog.json').read_text(encoding='utf-8'))
+        configs=json.loads((root/'data/storefront-homepages.json').read_text(encoding='utf-8'))['storefronts']
+        selected=set()
+        for conf in configs.values():
+            selected.update([conf['hero']['sku'],conf['feature']['sku'],*conf['featured']['skus'],*conf['categories']['covers'].values()])
+        subset=[p for p in master['products'] if p.get('commerceSku') in selected]
+        self.assertEqual({p.get('commerceSku') for p in subset},selected)
+        self.catalog.write_text(json.dumps({'products':subset}),encoding='utf-8')
+        self.assertEqual({p['id'] for p in storefront_registry()['storefronts']},{'svitlo','vase','decor'})
+        for slug,home in configs.items():
+            self.assertEqual(validate_storefront_homepage(slug,home),home)
+            self.assertEqual(update_storefront_homepage(slug,home),home)
+        self.assertEqual(set(storefront_homepages()['storefronts']),set(configs))
+        changed=copy.deepcopy(configs['vase'])
+        changed['hero']['titleLines'][0]='Нові вази.'
+        update_storefront_homepage('vase',changed)
+        readback=storefront_homepages()['storefronts']
+        self.assertEqual(readback['vase']['hero']['titleLines'][0],'Нові вази.')
+        self.assertEqual(readback['svitlo'],configs['svitlo'])
+        wrong=copy.deepcopy(configs['svitlo'])
+        wrong['hero']['sku']='SKU0030'
+        with self.assertRaisesRegex(ValueError,'INVALID_STOREFRONT_SKU'):
+            validate_storefront_homepage('svitlo',wrong)
+        with self.assertRaisesRegex(ValueError,'INVALID_STOREFRONT'):
+            validate_storefront_homepage('unlisted',configs['decor'])
 
     def test_http_auth_runtime_origin_and_private_paths(self):
         RATE.clear()
