@@ -152,3 +152,15 @@
 
 /* Private local editorial preview: draft never leaks into the default public catalogue. */
 .editor-preview-bar{background:#20362a;color:white;padding:10px 16px;text-align:center;font:700 11px/1.5 Arial,sans-serif;letter-spacing:.03em}
+
+/* Three themed preview storefronts share one application and catalogue. */
+body[data-storefront="svitlo"]{--accent:#b56d2a;--sage:#ede7dc}
+body[data-storefront="vase"]{--accent:#55765a;--sage:#e5ecdd}
+body[data-storefront="decor"]{--accent:#77567f;--sage:#ece5ef}
+body[data-storefront] .home-hero{background:var(--sage)}
+body[data-storefront] .category-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+body[data-storefront] .category-tile{grid-column:auto!important;min-height:330px}
+body[data-storefront="svitlo"] .category-tile,body[data-storefront="decor"] .category-tile{grid-column:1 / -1!important}
+body[data-storefront] .home-category-shortcuts{grid-template-columns:1fr}
+body[data-storefront] .home-hero .hero-image{background:var(--sage)}
+@media(max-width:700px){body[data-storefront] .category-tiles{grid-template-columns:1fr 1fr}body[data-storefront] .category-tile{min-height:240px}body[data-storefront="svitlo"] .category-tile,body[data-storefront="decor"] .category-tile{grid-column:1 / -1!important}}
