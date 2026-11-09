@@ -240,7 +240,7 @@ const DiViStore = (() => {
     if(page==='home'){
       try{
         if(storefrontId){
-          const res=await fetch(url('data/storefront-homepages.json'));
+          const res=await fetch(backend()?'/api/v1/storefront-homepages':url('data/storefront-homepages.json'));
           if(res.ok)homepageConfig=(await res.json()).storefronts?.[storefrontId]||null;
         }else{
           const res=await fetch(backend()?'/api/v1/homepage':url('data/homepage.json'));
