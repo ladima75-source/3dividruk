@@ -1,14 +1,20 @@
 /* One editor, one catalogue, three independently curated preview homepages. */
 (()=>{'use strict';
  const $=q=>document.querySelector(q),all=q=>[...document.querySelectorAll(q)];
- const key='3dividruk_admin_draft_v1';
+ const key='3dividruk_admin_draft_v1',backend=window.DIVIDRUK_COMMERCE_CONFIG?.checkoutMode==='backend';
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const sectionLabels={categories:'Категорії',featured:'Добірка виробів',feature:'Акцентний блок',story:'Про майстерню',benefits:'Переваги'};
- let registry=[],catalog=[],taxonomy=[],defaults={},state=null,current='',dirty=false;
+ let registry=[],catalog=[],taxonomy=[],defaults={},state=null,current='',dirty=false,token='';
  function copy(v){return JSON.parse(JSON.stringify(v))}
  function sku(p){return String(p.commerceSku||p.sku||'')}
  function draft(){try{const d=JSON.parse(localStorage.getItem(key)||'null');return d&&d.version===1&&d.products&&d.orders?d:{version:1,products:{},orders:{}}}catch{return {version:1,products:{},orders:{}}}}
  function report(t,cl=''){const node=$('#state');node.textContent=t;node.className='notice '+cl}
+ async function api(path,options={}){
+   const response=await fetch(path,{...options,headers:{Accept:'application/json',...(token?{Authorization:'Bearer '+token}:{}),...(options.body?{'Content-Type':'application/json'}:{})}});
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok)throw Error(result.message||result.error?.message||'Помилка '+response.status);
+   return result;
+ }
  function cfg(){return registry.find(x=>x.id===current)}
  function available(){return catalog.filter(p=>p.storefront_visible!==false&&p.enabled!==false&&cfg()?.categories.includes(p.category))}
  function findProduct(s){return available().find(p=>sku(p)===s||p.sku===s)}
@@ -58,7 +64,7 @@
    }
    $('#hero-image').src=photo(findProduct(state.hero.sku));
    renderCovers();renderFeatured();renderSections();
-   $('#preview').href='../'+current+'/index.html?editorPreview=1';
+   $('#preview').href='../'+current+'/index.html'+(backend?'':'?editorPreview=1');
  }
  function validate(){
    if(!state||!cfg())throw Error('Не вибрано вітрину');
@@ -77,7 +83,17 @@
    current=id;state=copy(draft().storefrontHomepages?.[id]||defaults[id]);dirty=false;render();
    report('Редагуєте «'+cfg().shortName+'». Зміни залишаються локальними до перенесення в GitHub.','warning');
  }
- $('#save').onclick=()=>{try{persist();report('Чернетка «'+cfg().shortName+'» збережена в браузері. Для публікації експортуйте JSON.','ok')}catch(e){report('Не збережено: '+e.message,'warning')}};
+ $('#save').onclick=async()=>{
+   try{
+     persist();
+     if(backend){
+       if(!token)throw Error('Увійдіть до адміністратора');
+       await api('/api/v1/admin/storefront-homepages/'+encodeURIComponent(current),{method:'PATCH',body:JSON.stringify(state)});
+       defaults[current]=copy(state);
+       report('Налаштування «'+cfg().shortName+'» збережено на сервері.','ok');
+     }else report('Чернетка «'+cfg().shortName+'» збережена в браузері. Для публікації експортуйте JSON.','ok');
+   }catch(e){report('Не збережено: '+e.message,'warning')}
+ };
  $('#export').onclick=()=>{
    try{persist();const d=draft();const payload={kind:'3dividruk-catalog-draft',createdAt:new Date().toISOString(),...d};
      const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}),u=URL.createObjectURL(blob);
@@ -110,15 +126,24 @@
    renderSections();
  };
  $('#add').onclick=()=>{collect();const id=$('#add-product').value;if(findProduct(id)&&!state.featured.skus.includes(id)&&state.featured.skus.length<12){state.featured.skus.push(id);renderFeatured()}};
+ $('#auth').onsubmit=async e=>{
+   e.preventDefault();token=e.currentTarget.elements.token.value;
+   try{await api('/api/v1/admin/settings');e.currentTarget.elements.token.value='';$('#auth').hidden=true;report('Авторизація пройшла успішно. Зміни можна зберігати на сервері.','ok')}
+   catch(err){token='';report('Помилка входу: '+err.message,'warning')}
+ };
  $('#menu').onclick=()=>document.body.classList.toggle('dividruk-menu-open');
  $('#overlay').onclick=()=>document.body.classList.remove('dividruk-menu-open');
  async function init(){try{
-   const [registryResponse,homeResponse,catalogResponse]=await Promise.all([fetch('../data/storefronts.json'),fetch('../data/storefront-homepages.json'),fetch('../data/catalog.json')]);
+   const [registryResponse,homeResponse,catalogResponse]=await Promise.all([
+     fetch(backend?'/api/v1/storefronts':'../data/storefronts.json'),
+     fetch(backend?'/api/v1/storefront-homepages':'../data/storefront-homepages.json'),
+     fetch(backend?'/api/v1/catalog':'../data/catalog.json')]);
    if(!registryResponse.ok||!homeResponse.ok||!catalogResponse.ok)throw Error('Не завантажено конфігурації');
    registry=(await registryResponse.json()).storefronts;defaults=(await homeResponse.json()).storefronts;
    const data=await catalogResponse.json();catalog=data.products;taxonomy=data.taxonomy||[];
    $('#storefront').innerHTML=registry.map(x=>'<option value="'+esc(x.id)+'">'+esc(x.shortName)+'</option>').join('');
    const query=new URLSearchParams(location.search),requested=query.get('site');
+   $('#auth').hidden=!backend;
    change(registry.some(x=>x.id===requested)?requested:'svitlo');
  }catch(e){report('Помилка завантаження вітрин: '+e.message,'warning')}}
  init();
