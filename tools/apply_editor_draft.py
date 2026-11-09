@@ -4,7 +4,7 @@ Usage:
   python tools/apply_editor_draft.py /path/to/3dividruk-editor-draft.json --check
   python tools/apply_editor_draft.py /path/to/3dividruk-editor-draft.json
 
-Changes only this repository's data/catalog.json and data/homepage.json.
+Changes only this repository's data/catalog.json, data/homepage.json and data/storefront-homepages.json.
 Then run: python tools/build.py && python tools/validate.py
 Never changes Prom.ua, domain, backend DB, or BB610 Market.
 """
@@ -66,12 +66,61 @@ def apply_draft(path:Path,check:bool=False):
         if not isinstance(homepage,dict):raise ValueError('Invalid homepage')
         # validate_homepage reads the on-disk catalog; the SKU universe remains stable here.
         validate_homepage(homepage)
+    scopes=json.loads((ROOT/'data/storefronts.json').read_text(encoding='utf-8'))['storefronts']
+    allowed_scopes={s['id']:s for s in scopes}
+    storefront_path=ROOT/'data/storefront-homepages.json'
+    storefronts_raw=json.loads(storefront_path.read_text(encoding='utf-8'))
+    requested=draft.get('storefrontHomepages') or {}
+    if not isinstance(requested,dict) or set(requested)-set(allowed_scopes):
+        raise ValueError('Unknown storefront draft')
+    for slug,config in requested.items():
+        if not isinstance(config,dict) or config.get('version')!=1:
+            raise ValueError('Invalid storefront homepage '+slug)
+        expected_sections={'categories','featured','feature','story','benefits'}
+        sections=config.get('sections')
+        if not isinstance(sections,list) or len(sections)!=len(expected_sections) or set(sections)!=expected_sections:
+            raise ValueError('Invalid storefront section order '+slug)
+        required_fields={
+            'hero':{'eyebrow':180,'description':650},
+            'categories':{'eyebrow':150,'title':200},
+            'featured':{'eyebrow':150,'title':200,'description':500},
+            'feature':{'eyebrow':150,'title':200,'description':650},
+            'story':{'eyebrow':150,'title':200,'description':1000}
+        }
+        for group,fields in required_fields.items():
+            part=config.get(group)
+            if not isinstance(part,dict):raise ValueError('Invalid section '+group+' of '+slug)
+            for name,limit in fields.items():
+                value=part.get(name)
+                if not isinstance(value,str) or len(value)>limit or (name in ('title','description') and not value.strip()):
+                    raise ValueError('Invalid text '+group+'.'+name+' of '+slug)
+        lines=config['hero'].get('titleLines')
+        if not isinstance(lines,list) or len(lines)!=3 or any(not isinstance(v,str) or not v.strip() or len(v)>75 for v in lines):
+            raise ValueError('Invalid hero title '+slug)
+        available={sku:p for sku,p in by_sku.items() if p.get('storefront_visible') is not False
+                    and p.get('enabled') is not False
+                    and p.get('category') in allowed_scopes[slug]['categories']}
+        featured=config['featured'].get('skus')
+        if not isinstance(featured,list) or not 1<=len(featured)<=12 or len(set(featured))!=len(featured):
+            raise ValueError('Invalid featured selection '+slug)
+        picks=[config['hero'].get('sku'),config['feature'].get('sku'),*featured]
+        if any(type(x) is not str or x not in available for x in picks):
+            raise ValueError('SKU outside storefront scope '+slug)
+        covers=config['categories'].get('covers')
+        if not isinstance(covers,dict) or set(covers)!=set(allowed_scopes[slug]['categories']):
+            raise ValueError('Invalid category covers '+slug)
+        for cat,sku in covers.items():
+            if sku not in available or available[sku].get('category')!=cat:
+                raise ValueError('Invalid storefront cover '+slug+'/'+cat)
+        storefronts_raw['storefronts'][slug]=config
     if not check:
         (ROOT/'data/catalog.json').write_text(json.dumps(original,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
         if homepage is not None:
             (ROOT/'data/homepage.json').write_text(json.dumps(homepage,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        if requested:
+            storefront_path.write_text(json.dumps(storefronts_raw,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     print(json.dumps({'validated':True,'dry_run':check,'edited_products':changes,'reordered_groups':len(orders),
-                      'homepage_changed':homepage is not None,'total_products':len(products)},ensure_ascii=False))
+                      'homepage_changed':homepage is not None,'storefront_homepages':sorted(requested),'total_products':len(products)},ensure_ascii=False))
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser()
