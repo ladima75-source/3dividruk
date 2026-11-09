@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "source": "single-shared-catalog",
+  "admin": "/admin/dashboard.html",
+  "productionDomainStatus": "3dividruk.com.ua stays on Prom.ua",
+  "storefronts": [
+    {
+      "id": "svitlo",
+      "name": "3DiViDruk Світло",
+      "shortName": "Світло",
+      "proposedHostname": "svitlo.3dividruk.com.ua",
+      "previewPath": "svitlo/",
+      "categories": [
+        "lighting"
+      ],
+      "description": "Дизайнерські настільні лампи та підвісні світильники"
+    },
+    {
+      "id": "vase",
+      "name": "3DiViDruk Вази та кашпо",
+      "shortName": "Вази та кашпо",
+      "proposedHostname": "vase.3dividruk.com.ua",
+      "previewPath": "vase/",
+      "categories": [
+        "vases",
+        "planters"
+      ],
+      "description": "Скульптурні вази та кашпо для сучасного інтер'єру"
+    },
+    {
+      "id": "decor",
+      "name": "3DiViDruk Декор",
+      "shortName": "Декор",
+      "proposedHostname": "decor.3dividruk.com.ua",
+      "previewPath": "decor/",
+      "categories": [
+        "decor"
+      ],
+      "description": "Статуетки, функціональний і настінний декор"
+    }
+  ]
+}
