@@ -17,6 +17,7 @@ from pathlib import Path
 from .db import migrate
 from .catalog import products, update_product, reorder_products
 from .homepage import homepage, update_homepage
+from .storefronts import storefront_registry, storefront_homepages, update_storefront_homepage
 from .orders import create_order, get_public_order, admin_list, update_status, settings, update_settings
 from .services.delivery.nova_poshta import NovaPoshtaAdapter
 from .services.delivery.base import DeliveryNotConfigured, DeliveryUpstreamError
@@ -133,6 +134,10 @@ class Handler(BaseHTTPRequestHandler):
                 return self.reply({'products':products(),'taxonomy':json.loads((ROOT/'data/taxonomy.json').read_text(encoding='utf-8'))['categories'],'currency':'UAH'})
             if path == '/api/v1/homepage':
                 return self.reply(homepage())
+            if path == '/api/v1/storefronts':
+                return self.reply(storefront_registry())
+            if path == '/api/v1/storefront-homepages':
+                return self.reply(storefront_homepages())
             if path == '/api/v1/payments/methods':
                 state = settings()
                 return self.reply({'methods':[{'id':'cod','method':'cod','label':'Післяплата','enabled':True}],
@@ -222,6 +227,9 @@ class Handler(BaseHTTPRequestHandler):
                 if not self.admin():
                     return
                 data = self.body()
+                if path.startswith('/api/v1/admin/storefront-homepages/') and self.command == 'PATCH':
+                    slug=path.rsplit('/',1)[-1]
+                    return self.reply(update_storefront_homepage(slug,data))
                 if path == '/api/v1/admin/homepage' and self.command == 'PATCH':
                     return self.reply(update_homepage(data))
                 if path == '/api/v1/admin/catalog/order' and self.command == 'PATCH':
