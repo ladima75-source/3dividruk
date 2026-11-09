@@ -97,6 +97,40 @@ for page in ('dashboard','homepage','media','workbench'):
     check((ROOT/'admin'/(page+'.html')).is_file(),'Missing admin page '+page)
 for file in ('admin/homepage.js','admin/media.js','tools/apply_editor_draft.py'):
     check((ROOT/file).is_file(),'Missing editor implementation '+file)
+# Three scoped previews, one shared catalog, no production DNS.
+registry=json.loads((ROOT/'data/storefronts.json').read_text(encoding='utf-8'))['storefronts']
+storefront_homes=json.loads((ROOT/'data/storefront-homepages.json').read_text(encoding='utf-8'))['storefronts']
+expected_ids={'svitlo','vase','decor'}
+check({s['id'] for s in registry}==expected_ids,'Unexpected storefront registry')
+check(set(storefront_homes)==expected_ids,'Storefront homepage configuration missing')
+visible_categories={p['category'] for p in products if p.get('storefront_visible') is not False}
+counts={}
+for store in registry:
+    slug=store['id']
+    categories=store['categories']
+    check(bool(categories) and set(categories)<=visible_categories,'Invalid storefront category scope '+slug)
+    scoped=[p for p in products if p.get('storefront_visible') is not False and p['category'] in categories]
+    counts[slug]=len(scoped)
+    all_skus={str(p.get('commerceSku') or p.get('sku')):p for p in scoped}
+    for route in ('index','catalog'):
+        page=(ROOT/slug/(route+'.html'))
+        check(page.exists(),'Missing storefront page '+slug+'/'+route)
+        if page.exists():
+            html_text=page.read_text(encoding='utf-8')
+            check('data-storefront="'+slug+'"' in html_text,'Wrong storefront context '+slug+'/'+route)
+            check('noindex,nofollow' in html_text,'Storefront preview must remain noindex '+slug+'/'+route)
+    cfg=storefront_homes[slug]
+    picks=[cfg['hero']['sku'],cfg['feature']['sku']]+cfg['featured']['skus']+list(cfg['categories']['covers'].values())
+    check(all(sku in all_skus for sku in picks),'Unlisted or paused storefront featured SKU '+slug)
+    check(set(cfg['categories']['covers'])==set(categories),'Wrong storefront cover categories '+slug)
+    check(set(cfg['sections'])==set(['categories','featured','feature','story','benefits']),'Invalid storefront section order '+slug)
+    check(len(cfg['featured']['skus'])==len(set(cfg['featured']['skus'])),'Duplicate storefront featured SKU '+slug)
+check(counts.get('svitlo')==sum(p['category']=='lighting' for p in products if p.get('storefront_visible') is not False),'Lighting scope mismatch')
+check(counts.get('vase')==sum(p['category'] in ('vases','planters') for p in products if p.get('storefront_visible') is not False),'Vase scope mismatch')
+check(counts.get('decor')==sum(p['category']=='decor' for p in products if p.get('storefront_visible') is not False),'Decor scope mismatch')
+check(sum(counts.values())==sum(p.get('storefront_visible') is not False for p in products),'A visible product is missing or duplicated across storefronts')
+check((ROOT/'admin/storefronts.html').is_file(),'Missing central storefront editor')
+check((ROOT/'admin/storefronts.js').is_file(),'Missing central storefront editor logic')
 for folder in ('js','config','css','admin'):
     for file in (ROOT/folder).rglob('*'):
         if not file.is_file() or file.suffix not in ('.js','.css','.html','.json'):continue
