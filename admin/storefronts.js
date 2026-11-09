@@ -60,6 +60,7 @@
    for(const el of all('[data-field]')){
      if(el.tagName==='SELECT'||el.id==='hero-product'||el.id==='feature-product'){
        el.innerHTML=productOptions(visible,nested(state,el.dataset.field));
+       el.value=nested(state,el.dataset.field)??'';
      }else el.value=nested(state,el.dataset.field)??'';
    }
    $('#hero-image').src=photo(findProduct(state.hero.sku));
