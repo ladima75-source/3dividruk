@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>Три вітрини · 3DiViDruk Admin</title>
+<link rel="stylesheet" href="admin-shell.css"><link rel="stylesheet" href="admin.css"><link rel="stylesheet" href="workbench.css"><link rel="stylesheet" href="homepage.css"><link rel="stylesheet" href="storefronts.css"></head>
+<body>
+<button id="menu" class="dividruk-menu-toggle" aria-label="Відкрити меню">☰</button><div id="overlay" class="dividruk-menu-overlay"></div>
+<aside class="dividruk-admin-sidebar"><div class="dividruk-shell-brand"><b>3DiVi<span>Druk</span></b><small>ADMIN</small></div><nav><section><h4>Єдине управління</h4>
+<a href="dashboard.html"><span>Огляд усіх вітрин</span></a>
+<a href="storefronts.html" class="active" aria-current="page"><span>Вітрини: Світло / Vase / Decor</span></a>
+<a href="workbench.html"><span>Усі картки та порядок</span></a>
+<a href="media.html"><span>Спільна медіатека</span></a>
+<a href="index.html#catalog"><span>Каталог і ціни</span></a>
+<a href="index.html#orders"><span>Замовлення</span></a></section><section><h4>Тестові сторінки</h4><a href="../svitlo/"><span>Світло ↗</span></a><a href="../vase/"><span>Вази й кашпо ↗</span></a><a href="../decor/"><span>Декор ↗</span></a></section></nav>
+<div class="dividruk-shell-foot"><span class="dividruk-shell-badge">Одна адмінка · три вітрини</span></div></aside>
+<header><div><small>3DiViDruk / Центральне керування</small><h1>Вітрини: Світло / Vase / Decor</h1></div><a class="studio-nav-link" href="dashboard.html">Огляд →</a></header>
+<main class="studio-main storefront-admin">
+<p id="state" role="status" class="notice">Завантажуємо налаштування трьох вітрин…</p>
+<section class="card">
+<div class="sf-head"><div><h2>Оберіть вітрину для редагування</h2><p>Усі товари, ціни, SKU та фото залишаються в одному каталозі. Тут змінюється лише оформлення обраної вітрини.</p></div>
+<div class="studio-actions"><a class="studio-nav-link" id="preview" href="../svitlo/?editorPreview=1" target="_blank" rel="noopener">Переглянути чернетку ↗</a><button type="button" id="save">Зберегти чернетку</button><button type="button" id="export" class="secondary">Експорт JSON</button></div></div>
+<div id="sf-choices" class="sf-choices"></div>
+<label for="storefront">Активна вітрина<select id="storefront"></select></label>
+<p id="scope" class="muted"></p>
+</section>
+<form id="editor">
+<section class="card">
+<div class="home-section-header"><span class="home-section-no">01</span><div><h2>Перший екран</h2><p>Заголовок, опис і основне фото обраної вітрини.</p></div></div>
+<div class="home-form-grid">
+<label>Підпис<input data-field="hero.eyebrow" maxlength="180"></label>
+<label>Головний товар<select data-field="hero.sku" id="hero-product"></select></label>
+<label>Рядок 1<input data-field="hero.titleLines.0" maxlength="75"></label>
+<label>Рядок 2<input data-field="hero.titleLines.1" maxlength="75"></label>
+<label>Рядок 3<input data-field="hero.titleLines.2" maxlength="75"></label>
+<label class="home-wide">Опис<textarea data-field="hero.description" maxlength="650" rows="3"></textarea></label>
+</div>
+<div class="sf-cover-photo"><img id="hero-image" alt="Обраний головний товар"><span>Фото береться зі спільної медіатеки товарів</span></div></section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">02</span><div><h2>Категорії та фотографії</h2><p>Лише категорії, які належать вибраній вітрині.</p></div></div>
+<div class="home-form-grid"><label>Підпис<input data-field="categories.eyebrow" maxlength="150"></label><label>Заголовок<input data-field="categories.title" maxlength="200"></label></div>
+<div id="covers" class="home-category-covers"></div></section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">03</span><div><h2>Добірка товарів</h2><p>Виберіть і впорядкуйте вироби, які покупці бачать на головній.</p></div></div>
+<div class="home-form-grid"><label>Підпис<input data-field="featured.eyebrow" maxlength="150"></label><label>Заголовок<input data-field="featured.title" maxlength="200"></label><label class="home-wide">Текст<textarea data-field="featured.description" maxlength="500" rows="2"></textarea></label></div>
+<div id="featured" class="home-featured-list"></div><div class="home-add-row"><label>Додати виріб<select id="add-product"></select></label><button type="button" id="add" class="secondary">Додати</button></div>
+</section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">04</span><div><h2>Акцентний блок</h2></div></div>
+<div class="home-form-grid"><label>Виріб<select data-field="feature.sku" id="feature-product"></select></label><label>Підпис<input data-field="feature.eyebrow" maxlength="150"></label><label>Заголовок<input data-field="feature.title" maxlength="200"></label><label class="home-wide">Текст<textarea data-field="feature.description" rows="3" maxlength="650"></textarea></label></div>
+</section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">05</span><div><h2>Майстерня</h2></div></div>
+<div class="home-form-grid"><label>Підпис<input data-field="story.eyebrow" maxlength="150"></label><label>Заголовок<input data-field="story.title" maxlength="200"></label><label class="home-wide">Текст<textarea data-field="story.description" rows="3" maxlength="1000"></textarea></label></div></section>
+<section class="card"><div class="home-section-header"><span class="home-section-no">06</span><div><h2>Порядок блоків</h2><p>Перший екран закріплено зверху. Інші блоки можна пересувати.</p></div></div><div id="sections" class="home-sections-list"></div></section>
+</form>
+<p class="notice">Тестовий GitHub Pages: збереження лише локальне. Для внесення змін у репозиторій експортуйте JSON. Реальні замовлення та платіжні сервіси тут не підключені.</p>
+</main><script src="../config/runtime.js"></script><script src="storefronts.js"></script></body></html>
