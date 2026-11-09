@@ -1,8 +1,19 @@
 'use strict';
 const DiViStore = (() => {
   const root=document.getElementById('app'),base=new URL(document.querySelector('meta[name="store-base"]').content,location.href);
-  const editorPreview=new URLSearchParams(location.search).get('editorPreview')==='1'&&(window.DIVIDRUK_COMMERCE_CONFIG?.checkoutMode!=='backend');
-  const url=path=>{const u=new URL(path,base);if(editorPreview&&/^(index\.html|catalog\.html|products\/)/.test(path))u.searchParams.set('editorPreview','1');return u.href};
+  const query=new URLSearchParams(location.search);
+  const knownStorefronts={svitlo:{label:'Світло',categories:['lighting']},vase:{label:'Вази та кашпо',categories:['vases','planters']},decor:{label:'Декор',categories:['decor']}};
+  const proposedStorefront=document.body.dataset.storefront||query.get('storefront')||'';
+  const storefrontId=Object.hasOwn(knownStorefronts,proposedStorefront)?proposedStorefront:'';
+  const storefrontScope=storefrontId?knownStorefronts[storefrontId]:null;
+  const editorPreview=query.get('editorPreview')==='1'&&(window.DIVIDRUK_COMMERCE_CONFIG?.checkoutMode!=='backend');
+  const url=path=>{
+    const rootPath=storefrontId&&/^(index\.html|catalog\.html)(\?|$)/.test(path)?storefrontId+'/'+path:path;
+    const u=new URL(rootPath,base);
+    if(storefrontId&&/^(products\/|cart\.html|checkout\.html|order\.html)/.test(path))u.searchParams.set('storefront',storefrontId);
+    if(editorPreview&&/^(index\.html|catalog\.html|products\/)/.test(path))u.searchParams.set('editorPreview','1');
+    return u.href;
+  };
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const cfg=()=>window.DIVIDRUK_COMMERCE_CONFIG||{};
   const backend=()=>cfg().checkoutMode==='backend';
@@ -25,9 +36,15 @@ const DiViStore = (() => {
   }
   const stock=p=>p.availability==='in_stock'?'В наявності':p.availability==='preorder'?'Під замовлення':p.availability==='out_of_stock'?'Немає в наявності':'Наявність уточнюємо';
   function toast(message){let t=document.querySelector('.toast');if(!t){t=document.createElement('div');t.className='toast';t.setAttribute('role','status');document.body.append(t)}t.innerHTML=esc(message)+' <a href="'+url('cart.html')+'">До кошика ↗</a>';clearTimeout(t.timer);t.timer=setTimeout(()=>t.remove(),4500)}
+  function storefrontNavigation(){
+    if(!storefrontScope)return '<a data-nav="home" href="'+url('index.html')+'">Головна</a><a data-nav="catalog" href="'+url('catalog.html')+'">Каталог</a><a data-nav="lighting" href="'+url('catalog.html?category=lighting')+'">Лампи</a><a data-nav="vases" href="'+url('catalog.html?category=vases')+'">Вази</a><a data-nav="planters" href="'+url('catalog.html?category=planters')+'">Кашпо</a><a data-nav="decor" href="'+url('catalog.html?category=decor')+'">Декор</a><a data-nav="about" href="'+url('about.html')+'">Про нас</a>';
+    const links=storefrontScope.categories.map(cat=>'<a data-nav="'+cat+'" href="'+url('catalog.html?category='+cat)+'">'+esc(({lighting:'Лампи',vases:'Вази',planters:'Кашпо',decor:'Декор'})[cat])+'</a>').join('');
+    const siblings=Object.entries(knownStorefronts).filter(([id])=>id!==storefrontId).map(([id,item])=>'<a href="'+new URL(id+'/index.html',base).href+'">'+esc(item.label)+'</a>').join('');
+    return '<a data-nav="home" href="'+url('index.html')+'">Головна</a><a data-nav="catalog" href="'+url('catalog.html')+'">Усі вироби</a>'+links+siblings+'<a data-nav="about" href="'+url('about.html')+'">Про нас</a>';
+  }
   function mountShell(){
     if(editorPreview){document.body.classList.add('editor-preview-mode')}
-    document.getElementById('site-header').innerHTML=`<a class="skip" href="#main">До вмісту</a><div class="announcement">СТВОРЕНО В УКРАЇНІ · НАДРУКОВАНО З ХАРАКТЕРОМ</div><header class="top"><div class="wrap"><a class="logo" href="${url('index.html')}" aria-label="3DiViDruk — головна">3DiVi<i>Druk</i><small>DESIGN IN A NEW DIMENSION</small></a><button class="menu-toggle" type="button" aria-controls="primary-nav" aria-expanded="false" aria-label="Відкрити меню"><span aria-hidden="true">☰</span> Меню</button><nav id="primary-nav" class="nav" aria-label="Основна навігація"><a data-nav="home" href="${url('index.html')}">Головна</a><a data-nav="catalog" href="${url('catalog.html')}">Каталог</a><a data-nav="lighting" href="${url('catalog.html?category=lighting')}">Лампи</a><a data-nav="vases" href="${url('catalog.html?category=vases')}">Вази</a><a data-nav="planters" href="${url('catalog.html?category=planters')}">Кашпо</a><a data-nav="decor" href="${url('catalog.html?category=decor')}">Декор</a><a data-nav="about" href="${url('about.html')}">Про нас</a></nav><div class="top-actions"><a class="phone" href="tel:+380972920104">+38 097 292 01 04</a><a class="cart-link" href="${url('cart.html')}">Кошик <span class="count" data-cart-count>0</span></a></div></div></header>${backend()?'<div class="preview">Окремий тестовий магазин · замовлення позначаються як тестові · онлайн-оплата вимкнена</div>':'<div class="preview">Тестова вітрина · перевірте кошик та оформлення. Купівля доступна в <a href="https://3dividruk.com.ua/ua/" style="text-decoration:underline">магазині на Prom.ua ↗</a></div>'}`;
+    document.getElementById('site-header').innerHTML=`<a class="skip" href="#main">До вмісту</a><div class="announcement">СТВОРЕНО В УКРАЇНІ · НАДРУКОВАНО З ХАРАКТЕРОМ</div><header class="top"><div class="wrap"><a class="logo" href="${url('index.html')}" aria-label="3DiViDruk — головна">3DiVi<i>Druk</i><small>${storefrontScope?esc(storefrontScope.label.toUpperCase()):'DESIGN IN A NEW DIMENSION'}</small></a><button class="menu-toggle" type="button" aria-controls="primary-nav" aria-expanded="false" aria-label="Відкрити меню"><span aria-hidden="true">☰</span> Меню</button><nav id="primary-nav" class="nav" aria-label="Основна навігація">${storefrontNavigation()}</nav><div class="top-actions"><a class="phone" href="tel:+380972920104">+38 097 292 01 04</a><a class="cart-link" href="${url('cart.html')}">Кошик <span class="count" data-cart-count>0</span></a></div></div></header>${backend()?'<div class="preview">Окремий тестовий магазин · замовлення позначаються як тестові · онлайн-оплата вимкнена</div>':'<div class="preview">Тестова вітрина · перевірте кошик та оформлення. Купівля доступна в <a href="https://3dividruk.com.ua/ua/" style="text-decoration:underline">магазині на Prom.ua ↗</a></div>'}`;
     document.getElementById('site-footer').innerHTML=`<footer><div class="wrap"><div class="footer-grid"><div class="footer-brand"><a class="logo" href="${url('index.html')}">3DiVi<i>Druk</i></a><p style="margin-top:15px;max-width:350px">Предмети з характером для вашого простору.<br>Власне виробництво за допомогою 3D-друку.</p></div><nav aria-label="Інформація"><a href="${url('delivery.html')}">Доставка та оплата</a><a href="${url('returns.html')}">Повернення та обмін</a><a href="${url('privacy.html')}">Конфіденційність</a><a href="${url('contacts.html')}">Контакти</a></nav><nav aria-label="Контакти"><a href="tel:+380972920104">+38 097 292 01 04</a><p>Дніпро, М. Рильського, 106</p><p>Пн–Пт · 10:00–18:00</p><a href="https://3dividruk.com.ua/ua/" target="_blank" rel="noopener">Ми на Prom.ua ↗</a></nav></div><div class="footnote"><span>© ${new Date().getFullYear()} 3DiViDruk. Україна.</span><span>Тестовий сайт · каталог станом на 08.11.2026 · UAH</span></div></div></footer>`;
     if(editorPreview){const note=document.createElement('div');note.className='editor-preview-bar';note.textContent='ПОПЕРЕДНІЙ ПЕРЕГЛЯД ЛОКАЛЬНОЇ ЧЕРНЕТКИ — покупці не бачать цих змін';document.getElementById('site-header').append(note)}
     DiViCart.updateBadges();
@@ -209,7 +226,7 @@ const DiViStore = (() => {
   async function order(){let last;try{last=JSON.parse(sessionStorage.getItem('3dividruk_last_order'))}catch{}if(!last||!backend()){root.innerHTML=`<div class="wrap empty">Замовлення в цій сесії не знайдено. <a href="${url('catalog.html')}">До каталогу</a></div>`;return}try{const response=await DiViOrderClient.getOrder(last.order_id,last.public_token),o=response.order||response;root.innerHTML=`<div class="wrap success"><span class="eyebrow">Тестове замовлення</span><h1>Дякуємо!</h1><p>Замовлення ${esc(o.order_number||o.order_id)} створене в окремій системі 3DiViDruk.</p><p>Сума за товари: <strong>${DiViCart.money(o.total)}</strong></p><p>Статус: ${esc(o.status)}. Це тест — кошти не списуються, відправлення не створюється.</p><a class="btn" href="${url('catalog.html')}">Повернутися до колекції ↗</a></div>`}catch(e){root.innerHTML='<div class="wrap error">'+esc(e.message)+'</div>'}}
   function normalize(p){const images=(p.images||p.localImages||p.imageUrls||[]).map(i=>typeof i==='string'?i:(i.local||i.url||i.src)).filter(Boolean);const title=p.title||p.name||'';let category=p.category||'';if(!['lighting','vases','planters','decor','bags'].includes(category)){category=/сумк/i.test(title)?'bags':/ламп|світильник/i.test(title)?'lighting':/ваз[аи]/i.test(title)?'vases':/горщик|кашпо/i.test(title)?'planters':'decor'}const sku=p.sku||'',id=String(p.id||p.sourceProductId);return {...p,id,sku,commerceSku:p.commerceSku||sku||('PROM-'+id),title,price:p.price==null?null:Number(p.price),category,categoryLabel:p.categoryLabel||{lighting:'Освітлення',vases:'Вази',planters:'Кашпо',decor:'Декор',bags:'Сумки MaGelle'}[category],subcategory:p.subcategory||null,subcategoryLabel:p.subcategoryLabel||'',images:images.length?images:[p.image||'assets/placeholder.svg'],description:p.description||p.descriptionText||'',attributes:Array.isArray(p.attributes)?p.attributes:[]}}
   async function init(){mountShell();const page=document.body.dataset.page;if(page==='policy')return;try{const endpoint=backend()?(cfg().apiBaseUrl||'')+cfg().endpoints.catalog:url('data/catalog.json');const response=await fetch(endpoint);if(!response.ok)throw new Error('Каталог тимчасово недоступний');const data=await response.json();let draftOrders={};
-    let loaded=(Array.isArray(data)?data:data.products).map(normalize).filter(p=>p.storefront_visible!==false);
+    let loaded=(Array.isArray(data)?data:data.products).map(normalize).filter(p=>p.storefront_visible!==false&&(!storefrontScope||storefrontScope.categories.includes(p.category)));
     if(editorPreview){
       try{
         const draft=JSON.parse(localStorage.getItem('3dividruk_admin_draft_v1')||'null');
@@ -221,10 +238,19 @@ const DiViStore = (() => {
     }
     products=merchandisingOrder(loaded,draftOrders);
     if(page==='home'){
-      try{const res=await fetch(backend()?'/api/v1/homepage':url('data/homepage.json'));
-        if(res.ok)homepageConfig=await res.json();
-        if(editorPreview){const draft=JSON.parse(localStorage.getItem('3dividruk_admin_draft_v1')||'null');
-          if(draft?.version===1&&draft.homepage&&typeof draft.homepage==='object')homepageConfig=draft.homepage}
+      try{
+        if(storefrontId){
+          const res=await fetch(url('data/storefront-homepages.json'));
+          if(res.ok)homepageConfig=(await res.json()).storefronts?.[storefrontId]||null;
+        }else{
+          const res=await fetch(backend()?'/api/v1/homepage':url('data/homepage.json'));
+          if(res.ok)homepageConfig=await res.json();
+        }
+        if(editorPreview){
+          const draft=JSON.parse(localStorage.getItem('3dividruk_admin_draft_v1')||'null');
+          const proposed=storefrontId?draft?.storefrontHomepages?.[storefrontId]:draft?.homepage;
+          if(draft?.version===1&&proposed&&typeof proposed==='object')homepageConfig=proposed;
+        }
       }catch(e){console.warn('Homepage settings unavailable; using defaults',e)}
     }
     categories=(Array.isArray(data.taxonomy)?data.taxonomy:[{id:'lighting',label:'Освітлення',subcategories:[]},{id:'vases',label:'Вази',subcategories:[]},{id:'planters',label:'Кашпо',subcategories:[]},{id:'decor',label:'Декор',subcategories:[]}]).filter(c=>!c.paused&&products.some(p=>p.category===c.id));DiViCart.bindCatalog(products);if(!products.length)throw new Error('Каталог готується');await ({home,catalog,product,cart,checkout,order}[page]||home)()}catch(e){root.innerHTML=`<div class="wrap empty"><h1>Завантаження не вдалося</h1><p>${esc(e.message)}</p><a class="btn" style="margin-top:20px" href="https://3dividruk.com.ua/ua/">Відкрити магазин на Prom.ua ↗</a></div>`}}
